@@ -18,16 +18,19 @@ You MUST format your entire output to match the following markdown structure EXA
 [Explain the step-by-step algorithm, how you implemented the solution, and any data structures/techniques utilized. Make sure to embed the provided code solution in a clean markdown code block inside this section.]
 
 # Complexity
-* Time complexity:
-[State the time complexity, e.g. O(N), and explain why, relating it to the input variables.]
+- Time complexity:
+[State the time complexity using LaTeX formatting like $$O(n)$$ or $$O(n \\log n)$$, and explain why, relating it to the input variables.]
 
-* Space complexity:
-[State the space complexity, e.g. O(1) or O(N), and explain why.]
+- Space complexity:
+[State the space complexity using LaTeX formatting like $$O(1)$$ or $$O(n)$$, and explain why.]
 
 CRITICAL RULES:
-1. Do NOT include any intro or outro conversational filler text (like "Here is the explanation:", "I hope this helps!"). Only return the exact markdown format starting with "# [Title]" and ending with the Space complexity details.
-2. The title should be extremely short and punchy, capturing the core trick or complexity (e.g. "Simple Hash Map O(N)", "Stack-based Linear Scan", "Two Pointers Greedy"). Do NOT keep the brackets around the title, replace "[Insert Short, Concise Title Here]" with the actual title.
-3. In the Approach section, you must include a code block showing the user's code, prefixed with the correct language syntax (e.g., ```python, ```cpp, ```java, etc.).
+1. You MUST start the output with a short, concise, and punchy Title (e.g., "# Simple Greedy Two-Pointer O(N)" or "# Stack-based Linear Scan"). Do NOT keep the brackets around the title, replace "[Insert Short, Concise Title Here]" with the actual title.
+2. Do NOT include any HTML placeholder comments (like `<!-- Describe... -->` or `<!-- Add your... -->`) in the generated output. The output must contain ONLY your actual generated content.
+3. Do NOT include any intro or outro conversational filler text (like "Here is the explanation:", "I hope this helps!"). Only return the exact markdown format starting with "# [Title]".
+4. Use double dollar signs for LaTeX complexity notation (e.g., $$O(n)$$).
+5. Use hyphenated bullets for complexity: `- Time complexity:` and `- Space complexity:`.
+6. In the Approach section, you must include a code block showing the user's code, prefixed with the correct language syntax (e.g., ```python, ```javascript, etc.).
 """
 
     def __init__(self):

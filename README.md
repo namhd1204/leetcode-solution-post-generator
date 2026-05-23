@@ -80,6 +80,12 @@ Cách sử dụng vô cùng đơn giản, bạn chỉ cần truyền URL của b
 python generate.py "https://leetcode.com/problems/unique-number-of-occurrences/"
 ```
 
+Chương trình sẽ tự động:
+1. 📝 Tạo bài viết giải thuật hoàn chỉnh dưới dạng Markdown
+2. 📋 Sao chép nội dung bài viết vào clipboard của bạn
+3. 📂 Mở file bài viết trong Notepad
+4. 🌐 Mở trình duyệt web tại trang soạn thảo LeetCode (chỉ cần `Ctrl + V` để paste và **Publish**!)
+
 ### Các tùy chọn nâng cao (CLI Flags)
 
 * **`-o` hoặc `--output`**: Chỉ định đường dẫn lưu file markdown tùy chọn. Mặc định bài viết sẽ tự động tạo thư mục và lưu tại `solutions/<slug>.md`.

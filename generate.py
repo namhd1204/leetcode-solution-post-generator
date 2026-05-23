@@ -162,5 +162,58 @@ def main():
     teaser = "\n".join(preview_lines[:15])
     print(f"{teaser}\n{CYAN}... [truncated] ...{RESET}\n")
 
+    # Automatically open in Notepad
+    import subprocess
+    print(f"{BLUE}⏳ Opening generated solution post in Notepad...{RESET}")
+    try:
+        # Under Windows, notepad is always available
+        subprocess.Popen(['notepad.exe', output_path])
+        print(f"{GREEN}✔ Opened successfully in Notepad!{RESET}")
+    except Exception as e:
+        print(f"{RED}[Error] Failed to open in Notepad: {e}{RESET}")
+
+    # Automatically copy to clipboard and open posting URL in browser
+    if True:
+        import webbrowser
+        import subprocess
+        
+        post_url = f"https://leetcode.com/problems/{slug}/post-solution/?submissionId={submission['id']}"
+        print(f"{BLUE}🚀 Launching Automated Solution Posting Assistant...{RESET}")
+        
+        # 1. Copy markdown content to clipboard via PowerShell (Zero dependencies)
+        clipboard_success = False
+        try:
+            # We use powershell to set the clipboard value natively on Windows
+            process = subprocess.Popen(
+                ['powershell', '-NoProfile', '-command', 'Set-Clipboard -Value $Input'],
+                stdin=subprocess.PIPE,
+                text=True
+            )
+            process.communicate(input=post_markdown)
+            clipboard_success = True
+            print(f"{GREEN}✔ Markdown post has been copied to your clipboard!{RESET}")
+        except Exception as e:
+            print(f"{YELLOW}[Warning] Could not copy automatically to clipboard: {e}{RESET}")
+            
+        # 2. Open LeetCode URL in browser
+        try:
+            print(f"{CYAN}⏳ Opening browser to: {post_url}{RESET}")
+            webbrowser.open(post_url)
+            print(f"{GREEN}✔ Browser opened successfully!{RESET}")
+        except Exception as e:
+            print(f"{RED}[Error] Failed to open web browser: {e}{RESET}")
+            
+        # 3. Print elegant instructions
+        print(f"\n{GREEN}{BOLD}========================================================================{RESET}")
+        print(f"{GREEN}{BOLD} 🎉  HYBRID AUTOMATION ACTIVE{RESET}")
+        print(f"{GREEN}{BOLD}========================================================================{RESET}")
+        print(f" 1. The solution explanation has been copied to your clipboard.")
+        print(f" 2. A browser tab has opened the LeetCode solutions editor for you.")
+        print(f" 3. {BOLD}Instructions:{RESET}")
+        print(f"    • Click inside LeetCode's description editor box.")
+        print(f"    • Press {BOLD}Ctrl+V{RESET} to paste the complete structured markdown post.")
+        print(f"    • Add a short Title, select appropriate tags, and click {BOLD}Publish{RESET}!")
+        print(f"{GREEN}{BOLD}========================================================================{RESET}")
+
 if __name__ == "__main__":
     main()
