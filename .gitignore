@@ -1,0 +1,52 @@
+# Sensitive credentials (DO NOT COMMIT)
+.env
+
+# Python Compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+.venv
+venv
+ENV
+env
+venv.bak
+env.bak
+
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*~
+
+# Operating System files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local generated solutions (Optional: comment out if you want to commit your generated solutions)
+solutions/mock-two-sum.md
