@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mô phỏng thuật toán Merge Sorted Array (Left-to-Right)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom highlight for active code lines */
+        .line-active {
+            background-color: rgba(59, 130, 246, 0.25);
+            border-left: 4px solid #3b82f6;
+            font-weight: 500;
+        }
+        /* Pulse Animation for comparing elements */
+        @keyframes pulse-highlight {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0px rgba(245, 158, 11, 0.7); }
+            50% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+        }
+        .pulse-compare {
+            animation: pulse-highlight 1.2s infinite;
+            border-color: #f59e0b !important;
+        }
+        /* Slide Animation to show shifting direction */
+        @keyframes shift-right {
+            0% { transform: translateX(0); opacity: 0.8; }
+            50% { transform: translateX(12px); opacity: 1; }
+            100% { transform: translateX(0); opacity: 0.8; }
+        }
+        .animate-shift {
+            animation: shift-right 0.8s infinite ease-in-out;
+            background-color: rgba(217, 119, 6, 0.2) !important;
+            border-color: #d97706 !important;
+        }
+        /* Dynamic Arrow styles */
+        .pointer-transition {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-2 rounded-lg text-white">
+                <i data-lucide="play-circle" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-white">Merge Sorted Array Visualizer</h1>
+                <p class="text-xs text-slate-400">In-Place Insertion and Shifting from Left to Right (Mô phỏng Chèn &amp; Dịch mảng)</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-full font-medium">
+                Độ phức tạp: O((m+n)²) | Space: O(1)
+            </span>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Settings and Array Visuals (7 Cols) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Input Settings Board -->
+            <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-5 shadow-xl">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-4 h-4 text-blue-400"></i> Cấu hình dữ liệu đầu vào
+                </h2>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Mảng nums1 (Thực tế + Placeholder 0)</label>
+                        <div class="flex gap-2">
+                            <input id="inputNums1" type="text" value="1, 3, 5, 0, 0, 0" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 flex-1">
+                            <div class="flex flex-col justify-center">
+                                <span class="text-xs text-slate-400">m = <span id="mVal" class="font-bold text-blue-400">3</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Mảng nums2</label>
+                        <div class="flex gap-2">
+                            <input id="inputNums2" type="text" value="2, 4, 6" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 flex-1">
+                            <div class="flex flex-col justify-center">
+                                <span class="text-xs text-slate-400">n = <span id="nVal" class="font-bold text-emerald-400">3</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex gap-3 justify-end">
+                    <button id="btnRandom" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+                        <i data-lucide="shuffle" class="w-3.5 h-3.5"></i> Ngẫu nhiên mẫu
+                    </button>
+                    <button id="btnApply" class="text-xs bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i> Áp dụng dữ liệu
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visualization Canvas -->
+            <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-5 shadow-xl flex-1 flex flex-col justify-between min-h-[460px]">
+                <div>
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                        <i data-lucide="eye" class="w-4 h-4 text-emerald-400"></i> Bảng mô phỏng hoạt họa trực quan
+                    </h2>
+
+                    <!-- Nums1 Area -->
+                    <div class="mb-4 bg-slate-900/40 p-4 rounded-xl border border-slate-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-blue-400 flex items-center gap-1.5">
+                                <span class="w-3 h-3 bg-blue-500 rounded-sm"></span> nums1 <span class="text-xs font-normal text-slate-400">(Mảng đích)</span>
+                            </span>
+                            <span class="text-xs text-slate-400 font-mono">Độ dài: <span id="nums1LengthText">6</span></span>
+                        </div>
+                        
+                        <div class="relative pt-6 pb-2">
+                            <!-- Index markers -->
+                            <div id="nums1Indexes" class="flex gap-3 mb-2"></div>
+                            
+                            <!-- Main Blocks of nums1 -->
+                            <div id="nums1Container" class="flex gap-3"></div>
+
+                            <!-- Pointer markers at bottom of nums1 -->
+                            <div id="nums1Pointers" class="relative h-12 mt-3 border-t border-slate-800/60 pt-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Bridge (Cầu so sánh trung gian) -->
+                    <div id="comparisonBridge" class="my-4 flex justify-center items-center gap-4 bg-slate-950/50 py-3.5 px-6 rounded-xl border border-slate-800 min-h-[85px] transition-all duration-300">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-slate-400 font-medium">SO SÁNH:</span>
+                            <div id="compVal1" class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-slate-300 bg-slate-800 border border-slate-700 transition-all">-</div>
+                            <div id="compOperator" class="text-lg font-bold text-amber-500 px-2 transition-all">?</div>
+                            <div id="compVal2" class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-slate-300 bg-slate-800 border border-slate-700 transition-all">-</div>
+                        </div>
+                        <div id="compVerdict" class="text-xs text-slate-400 border-l border-slate-800 pl-4 max-w-[280px]">
+                            Đang đợi thực thi bước kế tiếp...
+                        </div>
+                    </div>
+
+                    <!-- Nums2 Area -->
+                    <div class="mb-2 bg-slate-900/40 p-4 rounded-xl border border-slate-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-emerald-400 flex items-center gap-1.5">
+                                <span class="w-3 h-3 bg-emerald-500 rounded-sm"></span> nums2 <span class="text-xs font-normal text-slate-400">(Mảng nguồn để lấy chèn)</span>
+                            </span>
+                            <span class="text-xs text-slate-400 font-mono">Độ dài: <span id="nums2LengthText">3</span></span>
+                        </div>
+                        
+                        <div class="relative pt-6 pb-2">
+                            <div id="nums2Indexes" class="flex gap-3 mb-2"></div>
+                            <div id="nums2Container" class="flex gap-3"></div>
+                            <div id="nums2Pointers" class="relative h-12 mt-3 border-t border-slate-800/60 pt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explanation Panel -->
+                <div class="bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-slate-700/60 rounded-xl p-4 mt-2 min-h-[90px] flex items-start gap-4">
+                    <div id="statusIcon" class="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 flex-shrink-0 mt-0.5">
+                        <i data-lucide="info" class="w-6 h-6"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 id="stepTitle" class="text-xs font-bold text-amber-400 uppercase tracking-widest">Trạng thái hiện tại</h4>
+                        <p id="stepExplanation" class="text-sm text-slate-300 mt-1 leading-relaxed">Nhấn "Play" hoặc "Kế tiếp" để bắt đầu theo dõi tiến trình chạy thuật toán.</p>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Controls Playback -->
+            <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-4 flex flex-wrap gap-4 items-center justify-between shadow-xl">
+                <!-- Timeline Slider -->
+                <div class="flex items-center gap-3 flex-1 min-w-[220px]">
+                    <span class="text-xs text-slate-400 font-medium whitespace-nowrap">Bước: <span id="currentStepText" class="text-white font-bold">0</span>/<span id="totalStepsText" class="text-slate-400">0</span></span>
+                    <input id="timelineRange" type="range" min="0" max="0" value="0" class="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center gap-2">
+                    <button id="btnPrev" class="p-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg transition-all text-slate-200 active:scale-95" title="Bước trước">
+                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    </button>
+                    <button id="btnPlay" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-white font-semibold flex items-center gap-2 transition-all active:scale-95 shadow-md shadow-blue-900/30" title="Chạy tự động">
+                        <i id="playIcon" data-lucide="play" class="w-4 h-4"></i> <span id="playText">Play</span>
+                    </button>
+                    <button id="btnNext" class="p-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg transition-all text-slate-200 active:scale-95" title="Kế tiếp">
+                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    </button>
+                    <button id="btnReset" class="p-2.5 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 rounded-lg transition-all active:scale-95" title="Reset thuật toán">
+                        <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Speed Setting -->
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-slate-400 whitespace-nowrap">Tốc độ:</label>
+                    <select id="selectSpeed" class="bg-slate-900 border border-slate-700 text-xs rounded-md px-2 py-1.5 text-slate-300 focus:outline-none">
+                        <option value="2000">Chậm rãi (2.0s)</option>
+                        <option value="1200" selected>Bình thường (1.2s)</option>
+                        <option value="600">Nhanh (0.6s)</option>
+                    </select>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Code Highlight (5 Cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Code View Card -->
+            <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl overflow-hidden shadow-xl flex-1 flex flex-col">
+                <div class="bg-slate-900 px-5 py-4 border-b border-slate-700/60 flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        Mã nguồn thực thi (JS)
+                    </span>
+                    <span class="text-[11px] code-font text-blue-400">merge-sorted.js</span>
+                </div>
+                
+                <!-- Code text container with syntax highlighting -->
+                <div class="flex-1 overflow-auto code-font text-[11px] sm:text-xs leading-relaxed p-4 bg-slate-950/90 text-slate-300">
+                    <div id="codeLine0" class="py-0.5 px-2 rounded">var merge = function(nums1, m, nums2, n) {</div>
+                    <div id="codeLine1" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;let j = 0;</div>
+                    <div id="codeLine2" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;let newM = m;</div>
+                    <div id="codeLine3" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;for(let i = 0; i &lt; nums1.length && j &lt; n; i++) {</div>
+                    <div id="codeLine4" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+                    <div id="codeLine5" class="py-0.5 px-2 rounded text-slate-500">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Gặp số 0 nằm ngoài ranh giới vùng chứa phần tử gốc</div>
+                    <div id="codeLine6" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(nums1[i] === 0 && i &gt;= newM) {</div>
+                    <div id="codeLine7" class="py-0.5 px-2 rounded text-emerald-400 font-semibold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nums1[i] = nums2[j];</div>
+                    <div id="codeLine8" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j++;</div>
+                    <div id="codeLine9" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continue;</div>
+                    <div id="codeLine10" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+                    <div id="codeLine11" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+                    <div id="codeLine12" class="py-0.5 px-2 rounded text-slate-500">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Trùng khớp: Chèn, dịch mảng, tăng cả 2 con trỏ</div>
+                    <div id="codeLine13" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(nums1[i] === nums2[j]) {</div>
+                    <div id="codeLine14" class="py-0.5 px-2 rounded text-amber-400 font-semibold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;insert(nums1, i, nums2[j]);</div>
+                    <div id="codeLine15" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i++;</div>
+                    <div id="codeLine16" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j++;</div>
+                    <div id="codeLine17" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;newM++;</div>
+                    <div id="codeLine18" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+                    <div id="codeLine19" class="py-0.5 px-2 rounded text-slate-500">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Phần tử nums1[i] lớn hơn: Chèn nums2[j] và dịch mảng</div>
+                    <div id="codeLine20" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if(nums1[i] &gt; nums2[j]) {</div>
+                    <div id="codeLine21" class="py-0.5 px-2 rounded text-amber-400 font-semibold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;insert(nums1, i, nums2[j]);</div>
+                    <div id="codeLine22" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j++;</div>
+                    <div id="codeLine23" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;newM++;</div>
+                    <div id="codeLine24" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+                    <div id="codeLine25" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+                    <div id="codeLine26" class="py-0.5 px-2 rounded">};</div>
+                    <div id="codeLine27" class="py-0.5 px-2 rounded">&nbsp;</div>
+                    <div id="codeLine28" class="py-0.5 px-2 rounded text-slate-500">// Hàm helper dịch chuyển các phần tử từ index về bên phải</div>
+                    <div id="codeLine29" class="py-0.5 px-2 rounded">var insert = function(array, index, value) {</div>
+                    <div id="codeLine30" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;for(let i = array.length - 1; i &gt;= index; i--) {</div>
+                    <div id="codeLine31" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array[i] = i === index ? value : array[i-1];</div>
+                    <div id="codeLine32" class="py-0.5 px-2 rounded">&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+                    <div id="codeLine33" class="py-0.5 px-2 rounded">}</div>
+                </div>
+            </div>
+
+            <!-- Trace Values Panel -->
+            <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-4 shadow-xl">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                    <i data-lucide="database" class="w-4 h-4 text-purple-400"></i> Bảng giám sát biến số (Trace Table)
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-700">
+                        <div class="text-[10px] text-slate-400 font-medium">Biến i (nums1)</div>
+                        <div id="traceI" class="text-lg font-bold text-blue-400">-</div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-700">
+                        <div class="text-[10px] text-slate-400 font-medium">Biến j (nums2)</div>
+                        <div id="traceJ" class="text-lg font-bold text-emerald-400">-</div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-700">
+                        <div class="text-[10px] text-slate-400 font-medium">Ranh giới newM</div>
+                        <div id="traceNewM" class="text-lg font-bold text-rose-400">-</div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-700">
+                        <div class="text-[10px] text-slate-400 font-medium">Đã xong ?</div>
+                        <div id="traceStatus" class="text-xs font-bold text-slate-300 pt-1">Chưa bắt đầu</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950/50 py-3 text-center text-xs text-slate-500">
+        Phát triển trực quan hóa dựa trên lời giải Leetcode 8302266. O((m+n)²) Shifting Solution.
+    </footer>
+
+    <!-- Logic Simulation Engine -->
+    <script>
+        // Current trace variables
+        let steps = [];
+        let currentStepIndex = 0;
+        let autoPlayTimer = null;
+        let playSpeed = 1200; // ms
+
+        // Render Lucide icons
+        lucide.createIcons();
+
+        // DOM Elements
+        const elInputNums1 = document.getElementById('inputNums1');
+        const elInputNums2 = document.getElementById('inputNums2');
+        const elMVal = document.getElementById('mVal');
+        const elNVal = document.getElementById('nVal');
+        const elBtnApply = document.getElementById('btnApply');
+        const elBtnRandom = document.getElementById('btnRandom');
+        const elNums1Container = document.getElementById('nums1Container');
+        const elNums2Container = document.getElementById('nums2Container');
+        const elNums1Indexes = document.getElementById('nums1Indexes');
+        const elNums2Indexes = document.getElementById('nums2Indexes');
+        const elNums1Pointers = document.getElementById('nums1Pointers');
+        const elNums2Pointers = document.getElementById('nums2Pointers');
+        const elStepTitle = document.getElementById('stepTitle');
+        const elStepExplanation = document.getElementById('stepExplanation');
+        const elStatusIcon = document.getElementById('statusIcon');
+        
+        // Comparison elements
+        const elCompVal1 = document.getElementById('compVal1');
+        const elCompOperator = document.getElementById('compOperator');
+        const elCompVal2 = document.getElementById('compVal2');
+        const elCompVerdict = document.getElementById('compVerdict');
+
+        const elTimelineRange = document.getElementById('timelineRange');
+        const elCurrentStepText = document.getElementById('currentStepText');
+        const elTotalStepsText = document.getElementById('totalStepsText');
+
+        const elBtnPrev = document.getElementById('btnPrev');
+        const elBtnPlay = document.getElementById('btnPlay');
+        const elBtnNext = document.getElementById('btnNext');
+        const elBtnReset = document.getElementById('btnReset');
+        const elSelectSpeed = document.getElementById('selectSpeed');
+        const elPlayIcon = document.getElementById('playIcon');
+        const elPlayText = document.getElementById('playText');
+
+        const elTraceI = document.getElementById('traceI');
+        const elTraceJ = document.getElementById('traceJ');
+        const elTraceNewM = document.getElementById('traceNewM');
+        const elTraceStatus = document.getElementById('traceStatus');
+
+        // Parse & setup inputs
+        function getInputs() {
+            try {
+                let raw1 = elInputNums1.value.split(',').map(x => parseInt(x.trim()));
+                let raw2 = elInputNums2.value.split(',').map(x => parseInt(x.trim()));
+                
+                if (raw1.some(isNaN) || raw2.some(isNaN)) {
+                    throw new Error("Mảng chỉ được phép chứa các số nguyên cách nhau bằng dấu phẩy.");
+                }
+
+                // Count zeros at the end to auto-determine initial placeholders
+                let zeroCountFromEnd = 0;
+                for (let i = raw1.length - 1; i >= 0; i--) {
+                    if (raw1[i] === 0) {
+                        zeroCountFromEnd++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                let n = raw2.length;
+                let m = raw1.length - n;
+                
+                if (m < 0) {
+                    m = raw1.filter(x => x !== 0).length;
+                    // Adjust nums1 size to accommodate everything
+                    while(raw1.length < m + n) {
+                        raw1.push(0);
+                    }
+                }
+                
+                elMVal.textContent = m;
+                elNVal.textContent = n;
+                elInputNums1.value = raw1.join(', ');
+                elInputNums2.value = raw2.join(', ');
+
+                document.getElementById('nums1LengthText').textContent = raw1.length;
+                document.getElementById('nums2LengthText').textContent = raw2.length;
+
+                return { nums1: [...raw1], m, nums2: [...raw2], n };
+            } catch (err) {
+                alert("Đầu vào không hợp lệ: " + err.message);
+                return null;
+            }
+        }
+
+        // Generate Random Sample Data
+        function randomizeData() {
+            let m = Math.floor(Math.random() * 2) + 2; // 2 to 3
+            let n = Math.floor(Math.random() * 2) + 2; // 2 to 3
+            
+            let nums1Real = Array.from({length: m}, () => Math.floor(Math.random() * 10) + 1).sort((a, b) => a - b);
+            let nums2 = Array.from({length: n}, () => Math.floor(Math.random() * 10) + 1).sort((a, b) => a - b);
+            
+            let nums1 = [...nums1Real];
+            for (let i = 0; i < n; i++) {
+                nums1.push(0);
+            }
+
+            elInputNums1.value = nums1.join(', ');
+            elInputNums2.value = nums2.join(', ');
+            elMVal.textContent = m;
+            elNVal.textContent = n;
+            
+            applyConfig();
+        }
+
+        /**
+         * 2. MAIN STEP GENERATOR
+         * records explicit mini sub-steps of the sorting, comparing, shifting, and inserting actions.
+         */
+        function generateSteps(nums1Orig, m, nums2Orig, n) {
+            let nums1 = [...nums1Orig];
+            let nums2 = [...nums2Orig];
+            let stepHistory = [];
+            
+            // Capture helper
+            function capture(activeLines, title, explanation, category = 'info', meta = {}) {
+                stepHistory.push({
+                    nums1: [...nums1],
+                    nums2: [...nums2],
+                    i: meta.i !== undefined ? meta.i : null,
+                    j: meta.j !== undefined ? meta.j : null,
+                    newM: meta.newM !== undefined ? meta.newM : m,
+                    activeLines: activeLines,
+                    title: title,
+                    explanation: explanation,
+                    category: category, 
+                    // Shifting visualization details
+                    shiftingIndices: meta.shiftingIndices || [],
+                    insertedIndex: meta.insertedIndex !== undefined ? meta.insertedIndex : null,
+                    insertedVal: meta.insertedVal || null,
+                    comparison: meta.comparison || null, // {val1, op, val2, match}
+                    isDone: meta.isDone || false
+                });
+            }
+
+            // Init step
+            capture([0], "Bắt đầu thuật toán", "Khởi tạo con trỏ j = 0 để duyệt qua nums2. Ranh giới vùng giá trị gốc nums1 là newM = m.", 'info', { i: 0, j: 0, newM: m });
+            
+            let j = 0;
+            let newM = m;
+            capture([1, 2], "Thiết lập biến chạy", `Biến con trỏ j bắt đầu ở vị trí 0. Ranh giới rỗng ban đầu newM = ${newM} (chỉ số phần tử thật trong nums1).`, 'info', { i: 0, j: j, newM: newM });
+
+            for(let i = 0; i < nums1.length && j < n; i++) {
+                
+                // 1. Kiểm tra lặp
+                capture([3], "Duyệt vòng lặp (For Loop)", `Kiểm tra xem i = ${i} có nhỏ hơn độ dài nums1 (${nums1.length}) và j = ${j} < n (${n}) không. Cả hai đều thỏa mãn, tiếp tục vòng lặp.`, 'info', { i: i, j: j, newM: newM });
+
+                // 2. So sánh check placeholder 0 ngoài rìa
+                capture([6], "Kiểm tra Placeholder 0 rỗng", `Xem xét: Có phải nums1[${i}] là số 0 rỗng và vị trí i (${i}) đã đạt tới/vượt quá ranh giới newM (${newM}) không?`, 'info', { 
+                    i: i, 
+                    j: j, 
+                    newM: newM,
+                    comparison: { val1: nums1[i], op: "== 0 && i >=", val2: newM, verdict: `i (${i}) >= newM (${newM})` } 
+                });
+
+                if(nums1[i] === 0 && i >= newM) {
+                    nums1[i] = nums2[j];
+                    capture([7], "Gán trực tiếp", `Thỏa mãn điều kiện! nums1[${i}] là placeholder 0 nằm ngoài vùng giá trị thực tế hợp lệ. Tiến hành ghi trực tiếp phần tử nums2[${j}] (${nums2[j]}) vào vị trí này. KHÔNG cần dịch chuyển mảng.`, 'insert', { 
+                        i: i, 
+                        j: j, 
+                        newM: newM, 
+                        insertedIndex: i, 
+                        insertedVal: nums2[j] 
+                    });
+                    
+                    j++;
+                    capture([8, 9], "Tăng con trỏ j", `Tăng j lên 1 đơn vị (j = ${j}). Bỏ qua phần kiểm tra còn lại của lượt này bằng câu lệnh 'continue'.`, 'info', { i: i, j: j, newM: newM });
+                    continue;
+                }
+                
+                // 3. So sánh giá trị chính thức
+                capture([13], "So sánh hai phần tử", `So sánh giá trị tại nums1[${i}] (${nums1[i]}) với giá trị cần chèn nums2[${j}] (${nums2[j]})`, 'info', { 
+                    i: i, 
+                    j: j, 
+                    newM: newM,
+                    comparison: { val1: nums1[i], op: "===", val2: nums2[j], verdict: `nums1[${i}] (${nums1[i]}) so với nums2[${j}] (${nums2[j]})` }
+                });
+
+                if(nums1[i] === nums2[j]) {
+                    let insertVal = nums2[j];
+                    
+                    // Thao tác CHÈN: Chia nhỏ bước dịch chuyển
+                    // Mảng trước khi dịch chuyển
+                    let indicesToShift = [];
+                    for(let idx = nums1.length - 1; idx >= i; idx--) {
+                        indicesToShift.push(idx);
+                    }
+                    
+                    capture([14], "Chuẩn bị dịch mảng sang phải", `Trùng nhau! Phải chèn ${insertVal} vào trước. Tiến hành dịch chuyển hàng loạt các phần tử từ chỉ số ${i} đến cuối mảng sang bên phải một ô để tạo chỗ trống.`, 'shift', { 
+                        i: i, 
+                        j: j, 
+                        newM: newM, 
+                        shiftingIndices: [...indicesToShift],
+                        comparison: { val1: nums1[i], op: "===", val2: nums2[j] }
+                    });
+                    
+                    // Thực hiện dịch chuyển mảng
+                    insertSimulate(nums1, i, insertVal);
+                    
+                    capture([14], "Chèn thành công", `Đã dịch chuyển mảng hoàn tất và đặt giá trị ${insertVal} vào vị trí nums1[${i}].`, 'insert', { 
+                        i: i, 
+                        j: j, 
+                        newM: newM, 
+                        insertedIndex: i, 
+                        insertedVal: insertVal 
+                    });
+
+                    i++;
+                    capture([15], "Dịch con trỏ i", `i tăng thêm 1 đơn vị (i = ${i}) để bỏ qua phần tử vừa chèn ở vị trí vừa rồi.`, 'info', { i: i, j: j, newM: newM });
+                    
+                    j++;
+                    capture([16], "Tăng con trỏ j", `j tăng thêm 1 đơn vị (j = ${j}) vì phần tử nums2[${j-1}] đã được chèn vào thành công.`, 'info', { i: i, j: j, newM: newM });
+                    
+                    newM++;
+                    capture([17], "Cập nhật ranh giới newM", `Vùng phần tử có nghĩa tăng lên 1, cập nhật ranh giới mới: newM = ${newM}.`, 'info', { i: i, j: j, newM: newM });
+                    continue;
+                } 
+                
+                // 4. So sánh nếu nums1[i] lớn hơn
+                capture([20], "So sánh hai phần tử", `Kiểm tra xem phần tử đích nums1[${i}] (${nums1[i]}) có lớn hơn phần tử nguồn nums2[${j}] (${nums2[j]}) hay không.`, 'info', { 
+                    i: i, 
+                    j: j, 
+                    newM: newM,
+                    comparison: { val1: nums1[i], op: ">", val2: nums2[j], verdict: `nums1[${i}] (${nums1[i]}) > nums2[${j}] (${nums2[j]})` }
+                });
+
+                if(nums1[i] > nums2[j]) {
+                    let insertVal = nums2[j];
+                    
+                    // Thao tác CHÈN & DỊCH MẢNG
+                    let indicesToShift = [];
+                    for(let idx = nums1.length - 1; idx >= i; idx--) {
+                        indicesToShift.push(idx);
+                    }
+                    
+                    capture([21], "Dịch chuyển mảng sang phải", `Đúng! Phần tử hiện tại ở mảng chính nums1[${i}] (${nums1[i]}) lớn hơn ${insertVal} của nums2. Để đảm bảo mảng luôn có thứ tự tăng dần, ta dịch chuyển toàn bộ các phần tử từ vị trí ${i} sang bên phải 1 ô để chừa khe trống.`, 'shift', { 
+                        i: i, 
+                        j: j, 
+                        newM: newM, 
+                        shiftingIndices: [...indicesToShift],
+                        comparison: { val1: nums1[i], op: ">", val2: nums2[j] }
+                    });
+                    
+                    insertSimulate(nums1, i, insertVal);
+                    
+                    capture([21], "Ghi đè giá trị mới chèn", `Đã dọn chỗ trống thành công! Chèn giá trị từ nums2[${j}] (${insertVal}) vào vị trí nums1[${i}].`, 'insert', { 
+                        i: i, 
+                        j: j, 
+                        newM: newM, 
+                        insertedIndex: i, 
+                        insertedVal: insertVal 
+                    });
+                    
+                    j++;
+                    capture([22], "Tăng con trỏ j", `Tăng chỉ số j của nums2 lên một đơn vị: j = ${j}.`, 'info', { i: i, j: j, newM: newM });
+                    
+                    newM++;
+                    capture([23], "Cập nhật ranh giới newM", `Tăng ranh giới động vùng hợp lệ: newM = ${newM}.`, 'info', { i: i, j: j, newM: newM });
+                } else {
+                    capture([24], "Không chèn (Giữ nguyên)", `Vì nums1[${i}] (${nums1[i]}) bé hơn nums2[${j}] (${nums2[j]}) nên nó đã đứng đúng vị trí tương đối. Thuật toán không làm gì và sẽ nhảy sang phần tử kế tiếp ở chỉ số i ở vòng lặp sau.`, 'info', { 
+                        i: i, 
+                        j: j, 
+                        newM: newM,
+                        comparison: { val1: nums1[i], op: "<", val2: nums2[j], verdict: "nums1 nhỏ hơn, đứng trước" }
+                    });
+                }
+            }
+
+            capture([25], "Kết thúc xử lý", `Mọi phần tử mảng con nums2 đã được duyệt xong hoặc mảng đích nums1 đã quét hết phần tử. Quá trình Merge kết thúc.`, 'finish', { i: nums1.length, j: j, newM: newM, isDone: true });
+            return stepHistory;
+        }
+
+        // Helper to do physical simulation
+        function insertSimulate(array, index, value) {
+            for(let i = array.length - 1; i >= index; i--) {
+                array[i] = i === index ? value : array[i-1];
+            }
+        }
+
+        // 3. SPECIAL RENDERER WITH SHIFTING ANIMATIONS & SECTIONS
+        function renderBoxes(container, values, activeIndex, highlightColor, placeholderBoundary = -1, shiftingIndices = [], insertedIndex = null, insertedVal = null) {
+            container.innerHTML = '';
+            
+            values.forEach((val, idx) => {
+                const box = document.createElement('div');
+                box.className = `w-12 h-12 flex flex-col items-center justify-center font-bold text-sm rounded-xl border-2 transition-all duration-400 relative`;
+                
+                let isPlaceholder = placeholderBoundary !== -1 && idx >= placeholderBoundary;
+
+                // Determine styling classes
+                if (idx === activeIndex) {
+                    box.className += ` pulse-compare bg-blue-600 border-amber-500 text-white scale-110 shadow-lg`;
+                } else if (insertedIndex !== null && idx === insertedIndex) {
+                    // This was just inserted!
+                    box.className += ` bg-amber-500 border-amber-400 text-slate-900 scale-105 shadow-md font-extrabold ring-4 ring-amber-500/30`;
+                } else if (shiftingIndices.includes(idx)) {
+                    // Actively shifting to the right
+                    box.className += ` animate-shift text-amber-300`;
+                } else if (isPlaceholder) {
+                    if (val === 0) {
+                        box.className += ` bg-slate-950/40 text-slate-700 border-slate-800 border-dashed`;
+                    } else {
+                        box.className += ` bg-emerald-950/20 text-emerald-400 border-emerald-900`;
+                    }
+                } else {
+                    box.className += ` bg-slate-800 border-slate-700 text-slate-200`;
+                }
+
+                // Append element value
+                let arrowHint = '';
+                if (shiftingIndices.includes(idx) && idx < values.length - 1) {
+                    arrowHint = `<div class="absolute -top-3.5 text-amber-500 text-[10px] animate-pulse">➔</div>`;
+                }
+                
+                box.innerHTML = `${arrowHint}<span>${val}</span>`;
+                container.appendChild(box);
+            });
+        }
+
+        function renderIndexes(container, size) {
+            container.innerHTML = '';
+            for (let i = 0; i < size; i++) {
+                const idxBox = document.createElement('div');
+                idxBox.className = `w-12 text-center text-[10px] text-slate-500 font-mono font-bold`;
+                idxBox.innerText = `[${i}]`;
+                container.appendChild(idxBox);
+            }
+        }
+
+        function renderPointers(containerId, activeIdx, boundaryIdx = -1, colorHex = "#3b82f6", label = "i") {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if (activeIdx === null) return;
+
+            // Generate active index pointer
+            if (activeIdx < 12) { // Guard boundary to prevent design break on wide array
+                const mainPointer = document.createElement('div');
+                mainPointer.className = `absolute flex flex-col items-center pointer-transition`;
+                mainPointer.style.left = `${activeIdx * 60 + 12}px`; // 48px box + 12px gap
+                mainPointer.style.width = '24px';
+                mainPointer.innerHTML = `
+                    <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[8px]" style="border-b-color: ${colorHex}"></div>
+                    <span class="text-[10px] font-extrabold mt-1" style="color: ${colorHex}">${label}</span>
+                `;
+                container.appendChild(mainPointer);
+            }
+
+            // Generate boundary pointer (newM in nums1)
+            if (boundaryIdx !== -1 && boundaryIdx < 12) {
+                const boundaryPointer = document.createElement('div');
+                boundaryPointer.className = `absolute flex flex-col items-center pointer-transition`;
+                boundaryPointer.style.left = `${boundaryIdx * 60 + 12}px`;
+                boundaryPointer.style.width = '24px';
+                boundaryPointer.innerHTML = `
+                    <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[8px] border-b-rose-500"></div>
+                    <span class="text-[9px] font-extrabold mt-1 text-rose-500">newM</span>
+                `;
+                container.appendChild(boundaryPointer);
+            }
+        }
+
+        // Draw current frame logic
+        function drawStep(stepIndex) {
+            if (steps.length === 0) return;
+            
+            const step = steps[stepIndex];
+            
+            // 1. Render nums1 with shifting & insert styles
+            renderBoxes(
+                elNums1Container, 
+                step.nums1, 
+                step.i, 
+                'bg-blue-600 border-blue-400', 
+                step.newM,
+                step.shiftingIndices,
+                step.insertedIndex,
+                step.insertedVal
+            );
+            renderIndexes(elNums1Indexes, step.nums1.length);
+            renderPointers('nums1Pointers', step.i, step.newM, '#3b82f6', 'i');
+
+            // 2. Render nums2
+            let isComparingJ = step.comparison ? step.j : null;
+            renderBoxes(
+                elNums2Container, 
+                step.nums2, 
+                isComparingJ, 
+                'bg-emerald-600 border-emerald-400',
+                -1,
+                [],
+                (step.insertedIndex !== null && step.insertedVal !== null) ? -1 : null // highlight index if just read
+            );
+            renderIndexes(elNums2Indexes, step.nums2.length);
+            renderPointers('nums2Pointers', step.j, -1, '#10b981', 'j');
+
+            // 3. Update Comparison Bridge UI
+            if (step.comparison) {
+                elCompVal1.innerText = step.comparison.val1;
+                elCompVal1.className = "w-10 h-10 rounded-lg flex items-center justify-center font-bold bg-blue-950 border border-blue-500 text-blue-300 transform scale-110 shadow-lg";
+                
+                elCompVal2.innerText = step.comparison.val2;
+                elCompVal2.className = "w-10 h-10 rounded-lg flex items-center justify-center font-bold bg-emerald-950 border border-emerald-500 text-emerald-300 transform scale-110 shadow-lg";
+                
+                elCompOperator.innerText = step.comparison.op;
+                
+                if (step.comparison.verdict) {
+                    elCompVerdict.innerHTML = `<span class="text-xs font-semibold text-amber-400 block">Kết quả so sánh:</span><span class="text-xs text-slate-300">${step.comparison.verdict}</span>`;
+                } else {
+                    elCompVerdict.innerHTML = `<span class="text-xs text-slate-400 italic">Thực thi hành động dựa trên phép toán này.</span>`;
+                }
+            } else {
+                // Default comparison state
+                elCompVal1.innerText = "-";
+                elCompVal1.className = "w-10 h-10 rounded-lg flex items-center justify-center font-bold bg-slate-800 border border-slate-700 text-slate-400";
+                elCompVal2.innerText = "-";
+                elCompVal2.className = "w-10 h-10 rounded-lg flex items-center justify-center font-bold bg-slate-800 border border-slate-700 text-slate-400";
+                elCompOperator.innerText = "?";
+                elCompVerdict.innerHTML = `<span class="text-xs text-slate-500 italic">Không có phép so sánh nào diễn ra ở bước này.</span>`;
+            }
+
+            // 4. Update Explanations
+            elStepTitle.innerText = step.title;
+            elStepExplanation.innerText = step.explanation;
+            highlightCodeLines(step.activeLines);
+
+            // Change Icon styling
+            elStatusIcon.className = 'p-2.5 rounded-xl flex-shrink-0 mt-0.5 ';
+            if (step.category === 'shift') {
+                elStatusIcon.className += 'bg-amber-500/15 text-amber-400 border border-amber-500/30';
+                elStatusIcon.innerHTML = `<i data-lucide="chevrons-right" class="w-6 h-6"></i>`;
+            } else if (step.category === 'insert') {
+                elStatusIcon.className += 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+                elStatusIcon.innerHTML = `<i data-lucide="download-cloud" class="w-6 h-6"></i>`;
+            } else if (step.category === 'finish') {
+                elStatusIcon.className += 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30';
+                elStatusIcon.innerHTML = `<i data-lucide="trophy" class="w-6 h-6"></i>`;
+            } else {
+                elStatusIcon.className += 'bg-blue-500/15 text-blue-400 border border-blue-500/30';
+                elStatusIcon.innerHTML = `<i data-lucide="eye" class="w-6 h-6"></i>`;
+            }
+            lucide.createIcons();
+
+            // 5. Update Trace Monitoring Tables
+            elTraceI.innerText = step.i !== null ? step.i : '-';
+            elTraceJ.innerText = step.j !== null ? step.j : '-';
+            elTraceNewM.innerText = step.newM !== null ? step.newM : '-';
+            elTraceStatus.innerText = step.isDone ? 'Đã gộp xong!' : 'Đang xử lý...';
+            elTraceStatus.className = `text-xs font-bold pt-1 ${step.isDone ? 'text-emerald-400' : 'text-amber-400'}`;
+
+            // 6. Timeline update
+            elTimelineRange.value = stepIndex;
+            elCurrentStepText.innerText = stepIndex;
+        }
+
+        // Highlight line helper
+        function highlightCodeLines(activeLines) {
+            for (let i = 0; i <= 33; i++) {
+                const el = document.getElementById(`codeLine${i}`);
+                if (el) el.className = el.className.replace('line-active', '').trim();
+            }
+            activeLines.forEach(lineNum => {
+                const el = document.getElementById(`codeLine${lineNum}`);
+                if (el) el.className += ' line-active';
+            });
+        }
+
+        // Apply and start visualization
+        function applyConfig() {
+            stopAutoPlay();
+            const inputs = getInputs();
+            if (!inputs) return;
+
+            steps = generateSteps(inputs.nums1, inputs.m, inputs.nums2, inputs.n);
+            currentStepIndex = 0;
+            
+            elTimelineRange.max = steps.length - 1;
+            elTotalStepsText.innerText = steps.length - 1;
+
+            drawStep(0);
+        }
+
+        // Playback controllers
+        function nextStep() {
+            if (currentStepIndex < steps.length - 1) {
+                currentStepIndex++;
+                drawStep(currentStepIndex);
+            } else {
+                stopAutoPlay();
+            }
+        }
+
+        function prevStep() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                drawStep(currentStepIndex);
+            }
+        }
+
+        function play() {
+            if (autoPlayTimer) {
+                stopAutoPlay();
+            } else {
+                if (currentStepIndex === steps.length - 1) {
+                    currentStepIndex = 0; // restart
+                }
+                elPlayText.innerText = "Tạm dừng";
+                elPlayIcon.setAttribute('data-lucide', 'pause');
+                lucide.createIcons();
+                autoPlayTimer = setInterval(nextStep, playSpeed);
+            }
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayTimer) {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = null;
+            }
+            elPlayText.innerText = "Chạy";
+            elPlayIcon.setAttribute('data-lucide', 'play');
+            lucide.createIcons();
+        }
+
+        // Register Event Listeners
+        elBtnApply.addEventListener('click', applyConfig);
+        elBtnRandom.addEventListener('click', randomizeData);
+        elBtnPrev.addEventListener('click', () => { stopAutoPlay(); prevStep(); });
+        elBtnNext.addEventListener('click', () => { stopAutoPlay(); nextStep(); });
+        elBtnPlay.addEventListener('click', play);
+        elBtnReset.addEventListener('click', () => { applyConfig(); });
+        
+        elTimelineRange.addEventListener('input', (e) => {
+            stopAutoPlay();
+            currentStepIndex = parseInt(e.target.value);
+            drawStep(currentStepIndex);
+        });
+
+        elSelectSpeed.addEventListener('change', (e) => {
+            playSpeed = parseInt(e.target.value);
+            if (autoPlayTimer) {
+                stopAutoPlay();
+                play();
+            }
+        });
+
+        // Initialize on Load
+        window.onload = function() {
+            applyConfig();
+        }
+    </script>
+</body>
+</html>
