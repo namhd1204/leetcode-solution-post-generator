@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mô Phỏng Trực Quan Thuật Toán Binary Search</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        /* Active code line highlight */
+        .line-highlight {
+            background-color: rgba(14, 165, 233, 0.15);
+            border-left: 4px solid #0284c7;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen transition-colors duration-300">
+
+    <header class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-brand-600 to-sky-400 p-2.5 rounded-2xl text-white shadow-lg shadow-brand-500/20">
+                    <i class="fa-solid fa-magnifying-glass-chart text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-brand-600 to-sky-400 bg-clip-text text-transparent dark:from-brand-500">
+                        Binary Search Visualizer
+                    </h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Trực quan hoá thuật toán Tìm kiếm Nhị phân</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button id="themeToggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:block"></i>
+                </button>
+                <a href="#theory-section" class="px-4 py-2 text-sm font-medium rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Lý thuyết
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Configuration Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-brand-500"></i>
+                    Cấu hình dữ liệu đầu vào
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-300">
+                            Nhập mảng số nguyên (các số cách nhau bằng dấu phẩy)
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="text" id="arrayInput" value="5, 12, 18, 23, 35, 47, 50, 62, 77, 88, 91, 105" 
+                                class="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all text-base font-medium code-font"
+                                placeholder="Ví dụ: 10, 20, 30, 40">
+                            <button id="btnGenerateRandom" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold rounded-xl text-sm transition-all whitespace-nowrap flex items-center gap-2">
+                                <i class="fa-solid fa-shuffle"></i> Ngẫu nhiên
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1.5"><i class="fa-solid fa-info-circle"></i> Hệ thống sẽ tự động lọc bỏ các phần tử trùng lặp và sắp xếp tăng dần cho bạn.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-300">
+                                Số cần tìm (Target)
+                            </label>
+                            <input type="number" id="targetInput" value="47"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all font-medium text-base code-font">
+                        </div>
+                        <div class="flex items-end">
+                            <button id="btnResetVisualizer" class="w-full py-3 bg-brand-500 hover:bg-brand-600 active:scale-95 text-white font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-rotate-right"></i> Áp dụng & Khởi tạo lại
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulation Controls -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-gamepad text-brand-500"></i>
+                        Bộ điều khiển mô phỏng
+                    </h2>
+                    
+                    <!-- Speed Control -->
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm mb-2 font-medium">
+                            <span class="text-slate-500">Tốc độ tự động chạy</span>
+                            <span id="speedVal" class="text-brand-500 font-bold">1.0s / bước</span>
+                        </div>
+                        <input type="range" id="speedSlider" min="0.2" max="3" step="0.1" value="1" 
+                            class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-500">
+                    </div>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="grid grid-cols-3 gap-2">
+                    <button id="btnPrev" disabled class="py-3 px-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-xl text-sm transition-all flex flex-col items-center justify-center gap-1">
+                        <i class="fa-solid fa-backward-step text-base"></i>
+                        <span>Lùi lại</span>
+                    </button>
+                    
+                    <button id="btnPlayPause" class="py-3 px-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-xl text-sm transition-all flex flex-col items-center justify-center gap-1 shadow-md shadow-sky-500/10">
+                        <i id="playIcon" class="fa-solid fa-play text-base"></i>
+                        <span id="playText">Tự chạy</span>
+                    </button>
+
+                    <button id="btnNext" class="py-3 px-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-xl text-sm transition-all flex flex-col items-center justify-center gap-1">
+                        <i class="fa-solid fa-forward-step text-base"></i>
+                        <span>Tiếp tục</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation Screen (The Array Track) -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm mb-8 overflow-hidden relative">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-eye text-brand-500"></i>
+                    Bản đồ trực quan mảng
+                </h2>
+                <div class="flex items-center gap-4 text-xs font-semibold">
+                    <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-brand-500 block"></span> Mid</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-emerald-500 block"></span> Left</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-rose-500 block"></span> Right</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-slate-300 dark:bg-slate-700 block"></span> Loại bỏ</span>
+                </div>
+            </div>
+
+            <!-- Main Array Container -->
+            <div class="relative py-12 px-4 overflow-x-auto min-h-[220px] flex justify-center items-center">
+                <div id="arrayContainer" class="flex gap-3 md:gap-4 justify-start sm:justify-center items-center min-w-max transition-all duration-300">
+                    <!-- Elements will be generated by JS -->
+                </div>
+            </div>
+            
+            <!-- Result Alert Bar -->
+            <div id="resultMessage" class="hidden p-4 rounded-2xl text-center font-bold text-base transition-all duration-300 animate-pulse">
+                <!-- Message injected by JS -->
+            </div>
+        </div>
+
+        <!-- Two column analysis and Code simulation -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left panel: Code implementation visualizer -->
+            <div class="lg:col-span-7 bg-slate-900 text-slate-300 border border-slate-800 rounded-3xl p-6 shadow-md">
+                <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+                    <h3 class="text-md font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-code text-brand-500"></i>
+                        Luồng code đang thực thi
+                    </h3>
+                    <span class="text-xs px-2.5 py-1 bg-slate-800 rounded-full text-slate-400 font-semibold uppercase tracking-wider">JavaScript</span>
+                </div>
+                
+                <div class="code-font text-xs md:text-sm leading-relaxed overflow-x-auto space-y-1 py-2">
+                    <div id="codeLine1" class="px-3 py-1 rounded transition-colors duration-200">function binarySearch(arr, target) {</div>
+                    <div id="codeLine2" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;let left = 0;</div>
+                    <div id="codeLine3" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;let right = arr.length - 1;</div>
+                    <div id="codeLine4" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;while (left &lt;= right) {</div>
+                    <div id="codeLine5" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const mid = Math.floor(left + (right - left) / 2);</div>
+                    <div id="codeLine6" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (arr[mid] === target) {</div>
+                    <div id="codeLine7" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return mid; <span class="text-emerald-400">// Tìm thấy!</span></div>
+                    <div id="codeLine8" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+                    <div id="codeLine9" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (arr[mid] &lt; target) {</div>
+                    <div id="codeLine10" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;left = mid + 1; <span class="text-slate-500">// Thu hẹp sang phải</span></div>
+                    <div id="codeLine11" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {</div>
+                    <div id="codeLine12" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;right = mid - 1; <span class="text-slate-500">// Thu hẹp sang trái</span></div>
+                    <div id="codeLine13" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+                    <div id="codeLine14" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+                    <div id="codeLine15" class="px-3 py-1 rounded transition-colors duration-200">&nbsp;&nbsp;&nbsp;&nbsp;return -1; <span class="text-rose-400">// Không tìm thấy</span></div>
+                    <div id="codeLine16" class="px-3 py-1 rounded transition-colors duration-200">}</div>
+                </div>
+            </div>
+
+            <!-- Right panel: Variable tracking and status -->
+            <div class="lg:col-span-5 flex flex-col gap-6">
+                <!-- Variables Tracking Card -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+                    <h3 class="text-md font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-bullseye text-brand-500"></i>
+                        Theo dõi biến số & trạng thái
+                    </h3>
+                    
+                    <div class="grid grid-cols-3 gap-3 mb-4">
+                        <div class="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800/50 text-center">
+                            <span class="text-xs font-semibold text-emerald-500 block mb-1">LEFT</span>
+                            <span id="valLeft" class="text-xl font-bold code-font">-</span>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800/50 text-center">
+                            <span class="text-xs font-semibold text-brand-500 block mb-1">MID</span>
+                            <span id="valMid" class="text-xl font-bold code-font">-</span>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800/50 text-center">
+                            <span class="text-xs font-semibold text-rose-500 block mb-1">RIGHT</span>
+                            <span id="valRight" class="text-xl font-bold code-font">-</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400">Giá trị tại Mid: <code class="code-font font-bold text-slate-800 dark:text-slate-200">arr[mid]</code></span>
+                            <span id="valMidValue" class="font-bold code-font">-</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-400">Mục tiêu cần tìm: <code class="code-font font-bold text-slate-800 dark:text-slate-200">target</code></span>
+                            <span id="valTarget" class="font-bold code-font">-</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2">
+                            <span class="text-slate-400">Số bước thực hiện:</span>
+                            <span id="valStepCount" class="font-bold text-brand-500 code-font">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explanation Bubble -->
+                <div class="bg-brand-50 dark:bg-slate-900 border border-brand-100 dark:border-slate-800 rounded-3xl p-6 flex-1 flex flex-col">
+                    <h3 class="text-sm font-bold text-brand-700 dark:text-brand-500 uppercase tracking-wider mb-2">Chú giải từng bước</h3>
+                    <div id="stepExplanation" class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed flex-1">
+                        Nhấn nút "Áp dụng & Khởi tạo lại" hoặc "Tiếp tục" để bắt đầu quá trình mô phỏng tìm kiếm nhị phân.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informative/Theory Section -->
+        <section id="theory-section" class="mt-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-brand-500"></i>
+                Tìm hiểu thêm: Thuật toán Tìm kiếm Nhị phân là gì?
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm md:text-base leading-relaxed text-slate-600 dark:text-slate-300">
+                <div class="space-y-4">
+                    <p>
+                        <strong>Tìm kiếm Nhị phân (Binary Search)</strong> là một thuật toán cực kỳ hiệu quả để tìm kiếm một phần tử trong một danh sách đã được <strong>sắp xếp</strong>. Thay vì duyệt tuần tự qua từng phần tử (Linear Search) mất thời gian tối đa $O(n)$, Binary Search hoạt động theo phương pháp **"Chia để trị"** (Divide and Conquer).
+                    </p>
+                    <p>
+                        Thuật toán liên tục chia đôi khoảng tìm kiếm. Tại mỗi bước, nó so sánh giá trị cần tìm kiếm với phần tử ở giữa mảng:
+                    </p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>Nếu phần tử ở giữa bằng mục tiêu cần tìm, thuật toán kết thúc thành công.</li>
+                        <li>Nếu mục tiêu nhỏ hơn phần tử ở giữa, phạm vi tìm kiếm tiếp theo bị thu hẹp về nửa bên trái.</li>
+                        <li>Nếu mục tiêu lớn hơn phần tử ở giữa, phạm vi tìm kiếm tiếp theo bị thu hẹp về nửa bên phải.</li>
+                    </ul>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-slate-50 dark:bg-slate-950 p-5 rounded-2xl border border-slate-100 dark:border-slate-800/60">
+                        <h4 class="font-bold mb-2 text-slate-800 dark:text-white">Độ phức tạp thuật toán (Time Complexity)</h4>
+                        <table class="w-full text-xs md:text-sm mt-3">
+                            <tbody>
+                                <tr class="border-b border-slate-200 dark:border-slate-800">
+                                    <td class="py-2 text-slate-400">Trường hợp tốt nhất (Best Case)</td>
+                                    <td class="py-2 font-bold text-emerald-500 text-right">O(1) <span class="font-normal text-slate-400">(Tìm thấy ngay giữa)</span></td>
+                                </tr>
+                                <tr class="border-b border-slate-200 dark:border-slate-800">
+                                    <td class="py-2 text-slate-400">Trường hợp trung bình (Average Case)</td>
+                                    <td class="py-2 font-bold text-brand-500 text-right">O(log n)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-slate-400">Trường hợp tệ nhất (Worst Case)</td>
+                                    <td class="py-2 font-bold text-rose-500 text-right">O(log n)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bg-amber-50 dark:bg-slate-950 p-5 rounded-2xl border border-amber-200/50 dark:border-slate-800/60">
+                        <h4 class="font-bold mb-1 text-amber-800 dark:text-amber-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Điều kiện bắt buộc
+                        </h4>
+                        <p class="text-xs text-amber-900/80 dark:text-slate-400">
+                            Mảng đầu vào <strong>bắt buộc phải được sắp xếp</strong> (tăng dần hoặc giảm dần). Nếu mảng chưa sắp xếp, việc chia đôi sẽ phá vỡ tính quy luật của thuật toán và đưa ra kết quả hoàn toàn sai lệch.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-slate-200 dark:border-slate-800 mt-16 py-6 text-center text-xs text-slate-400">
+        <p>© 2026 Binary Search Visualizer. Phát triển trực quan hóa thuật toán bằng HTML, CSS & JS.</p>
+    </footer>
+
+    <!-- JS Logic -->
+    <script>
+        // DOM Elements
+        const themeToggle = document.getElementById('themeToggle');
+        const arrayInput = document.getElementById('arrayInput');
+        const targetInput = document.getElementById('targetInput');
+        const btnGenerateRandom = document.getElementById('btnGenerateRandom');
+        const btnResetVisualizer = document.getElementById('btnResetVisualizer');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const playIcon = document.getElementById('playIcon');
+        const playText = document.getElementById('playText');
+        const btnNext = document.getElementById('btnNext');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedVal = document.getElementById('speedVal');
+        const arrayContainer = document.getElementById('arrayContainer');
+        const resultMessage = document.getElementById('resultMessage');
+        const valLeft = document.getElementById('valLeft');
+        const valMid = document.getElementById('valMid');
+        const valRight = document.getElementById('valRight');
+        const valMidValue = document.getElementById('valMidValue');
+        const valTarget = document.getElementById('valTarget');
+        const valStepCount = document.getElementById('valStepCount');
+        const stepExplanation = document.getElementById('stepExplanation');
+
+        // State Variables
+        let array = [];
+        let target = 0;
+        let steps = [];
+        let currentStepIndex = -1;
+        let playInterval = null;
+        let isPlaying = false;
+
+        // Theme Manager
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+        } else {
+            document.documentElement.classList.add('dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // Speed Control Listener
+        speedSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            speedVal.innerText = `${val.toFixed(1)}s / bước`;
+            if (isPlaying) {
+                pauseAutoPlay();
+                startAutoPlay();
+            }
+        });
+
+        // Parse & Clean Array Input
+        function getCleanInputArray() {
+            const rawValue = arrayInput.value;
+            // Split by comma or space
+            const rawArr = rawValue.split(/[\s,]+/).map(item => parseInt(item.trim(), 10)).filter(item => !isNaN(item));
+            // Remove duplicates and sort ascending
+            return [...new Set(rawArr)].sort((a, b) => a - b);
+        }
+
+        // Generate Random Array
+        btnGenerateRandom.addEventListener('click', () => {
+            const size = Math.floor(Math.random() * 6) + 10; // 10 to 15 items
+            const randomSet = new Set();
+            while(randomSet.size < size) {
+                randomSet.add(Math.floor(Math.random() * 150) + 1); // 1 to 150
+            }
+            const sortedArray = [...randomSet].sort((a, b) => a - b);
+            arrayInput.value = sortedArray.join(', ');
+            
+            // Random target from array (80% chance) or completely random (20% chance)
+            if (Math.random() > 0.2) {
+                targetInput.value = sortedArray[Math.floor(Math.random() * sortedArray.length)];
+            } else {
+                targetInput.value = Math.floor(Math.random() * 150) + 1;
+            }
+            initVisualizer();
+        });
+
+        // Generate the step-by-step history of binary search
+        function generateSteps(arr, searchTarget) {
+            const generatedSteps = [];
+            let left = 0;
+            let right = arr.length - 1;
+            let stepCount = 0;
+
+            // Step 0: Trạng thái ban đầu
+            generatedSteps.push({
+                left,
+                right,
+                mid: null,
+                activeLines: [2, 3],
+                explanation: `Khởi tạo thuật toán. Đặt biên trái <code class="code-font text-emerald-500 font-bold">Left = 0</code> và biên phải <code class="code-font text-rose-500 font-bold">Right = ${right}</code> (cuối mảng). Khoảng tìm kiếm hiện tại bao trùm toàn bộ mảng.`,
+                status: 'init',
+                stepNum: stepCount
+            });
+
+            while (left <= right) {
+                stepCount++;
+                
+                // Đọc code bắt đầu check điều kiện lặp
+                generatedSteps.push({
+                    left,
+                    right,
+                    mid: null,
+                    activeLines: [4],
+                    explanation: `Kiểm tra điều kiện vòng lặp: <code class="code-font font-bold">Left (${left}) &lt;= Right (${right})</code>. Điều kiện này <strong>ĐÚNG</strong>, tiếp tục vòng lặp thứ ${stepCount}.`,
+                    status: 'loop-check',
+                    stepNum: stepCount
+                });
+
+                // Tìm điểm Mid
+                const mid = Math.floor(left + (right - left) / 2);
+                generatedSteps.push({
+                    left,
+                    right,
+                    mid,
+                    activeLines: [5],
+                    explanation: `Tính toán chỉ số ở giữa: <code class="code-font font-bold">Mid = Math.floor(Left + (Right - Left)/2)</code><br>👉 <code class="code-font font-bold">Mid = ${left} + (${right} - ${left})/2 = ${mid}</code> (phần tử có giá trị là <strong>${arr[mid]}</strong>).`,
+                    status: 'calc-mid',
+                    stepNum: stepCount
+                });
+
+                // So sánh arr[mid] === target
+                generatedSteps.push({
+                    left,
+                    right,
+                    mid,
+                    activeLines: [6],
+                    explanation: `So sánh giá trị tại Mid (<code class="code-font font-bold">arr[mid] = ${arr[mid]}</code>) với Target (<code class="code-font font-bold">${searchTarget}</code>).`,
+                    status: 'compare-equal',
+                    stepNum: stepCount
+                });
+
+                if (arr[mid] === searchTarget) {
+                    generatedSteps.push({
+                        left,
+                        right,
+                        mid,
+                        activeLines: [7],
+                        explanation: `🎉 <strong>TÌM THẤY!</strong> Giá trị <code class="code-font font-bold">arr[mid] (${arr[mid]})</code> bằng đúng với số <code class="code-font font-bold">Target (${searchTarget})</code> tại vị trí index số <strong>${mid}</strong>.`,
+                        status: 'success',
+                        stepNum: stepCount
+                    });
+                    return generatedSteps;
+                }
+
+                // Check arr[mid] < target
+                generatedSteps.push({
+                    left,
+                    right,
+                    mid,
+                    activeLines: [9],
+                    explanation: `So sánh xem giá trị tại Mid (<code class="code-font font-bold">${arr[mid]}</code>) có nhỏ hơn Target (<code class="code-font font-bold">${searchTarget}</code>) hay không?`,
+                    status: 'compare-less',
+                    stepNum: stepCount
+                });
+
+                if (arr[mid] < searchTarget) {
+                    const prevLeft = left;
+                    left = mid + 1;
+                    generatedSteps.push({
+                        left,
+                        right,
+                        mid,
+                        activeLines: [10],
+                        explanation: `Vì <code class="code-font font-bold">${arr[mid]} &lt; ${searchTarget}</code>, giá trị cần tìm chỉ có thể nằm bên phải của Mid. <br>Ta dịch biên trái: <code class="code-font text-emerald-500 font-bold">Left = Mid + 1 = ${left}</code>. Loại bỏ nửa bên trái từ index ${prevLeft} đến ${mid}.`,
+                        status: 'shift-left',
+                        stepNum: stepCount
+                    });
+                } else {
+                    const prevRight = right;
+                    right = mid - 1;
+                    generatedSteps.push({
+                        left,
+                        right,
+                        mid,
+                        activeLines: [12],
+                        explanation: `Vì <code class="code-font font-bold">${arr[mid]} &gt; ${searchTarget}</code>, giá trị cần tìm chỉ có thể nằm bên trái của Mid. <br>Ta dịch biên phải: <code class="code-font text-rose-500 font-bold">Right = Mid - 1 = ${right}</code>. Loại bỏ nửa bên phải từ index ${mid} đến ${prevRight}.`,
+                        status: 'shift-right',
+                        stepNum: stepCount
+                    });
+                }
+            }
+
+            // Kết thúc vòng lặp không tìm thấy
+            stepCount++;
+            generatedSteps.push({
+                left,
+                right,
+                mid: null,
+                activeLines: [4],
+                explanation: `Kiểm tra điều kiện lặp: <code class="code-font font-bold">Left (${left}) &lt;= Right (${right})</code> là <strong>SAI</strong>. Dừng vòng lặp vì toàn bộ mảng đã được tìm kiếm hết nhưng không khớp.`,
+                status: 'loop-failed',
+                stepNum: stepCount
+            });
+
+            generatedSteps.push({
+                left,
+                right,
+                mid: null,
+                activeLines: [15],
+                explanation: `❌ <strong>Không tìm thấy!</strong> Kết luận giá trị <code class="code-font font-bold">${searchTarget}</code> không tồn tại trong mảng này. Trả về kết quả <code class="code-font font-bold">-1</code>.`,
+                status: 'failed',
+                stepNum: stepCount
+            });
+
+            return generatedSteps;
+        }
+
+        // Initialize and render starting state
+        function initVisualizer() {
+            pauseAutoPlay();
+            
+            array = getCleanInputArray();
+            target = parseInt(targetInput.value, 10);
+            
+            // Sync values to screen
+            arrayInput.value = array.join(', ');
+            
+            if (array.length === 0 || isNaN(target)) {
+                stepExplanation.innerHTML = "<span class='text-rose-500 font-semibold'>Vui lòng nhập mảng số hợp lệ và số cần tìm!</span>";
+                return;
+            }
+
+            steps = generateSteps(array, target);
+            currentStepIndex = 0;
+            
+            renderArray();
+            applyStep(currentStepIndex);
+            updateButtonStates();
+        }
+
+        // Render nodes to the DOM
+        function renderArray() {
+            arrayContainer.innerHTML = '';
+            
+            array.forEach((val, idx) => {
+                const elementNode = document.createElement('div');
+                elementNode.id = `node-${idx}`;
+                elementNode.className = "relative flex flex-col items-center group";
+                
+                // Inside cell node
+                elementNode.innerHTML = `
+                    <!-- Arrow markers -->
+                    <div class="h-8 relative w-full flex justify-center mb-1">
+                        <div id="marker-left-${idx}" class="absolute -bottom-1 text-emerald-500 text-xs font-bold flex flex-col items-center opacity-0 transition-all duration-300 transform translate-y-2">
+                            <span>L</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div id="marker-mid-${idx}" class="absolute -bottom-1 text-brand-500 text-xs font-bold flex flex-col items-center opacity-0 transition-all duration-300 transform translate-y-2">
+                            <span>M</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div id="marker-right-${idx}" class="absolute -bottom-1 text-rose-500 text-xs font-bold flex flex-col items-center opacity-0 transition-all duration-300 transform translate-y-2">
+                            <span>R</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                    </div>
+
+                    <!-- Array box element -->
+                    <div id="box-${idx}" class="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-2xl text-base md:text-lg font-bold code-font transition-all duration-300 shadow-sm">
+                        ${val}
+                    </div>
+
+                    <!-- Index text indicator -->
+                    <span class="text-xs font-semibold text-slate-400 mt-2 block">${idx}</span>
+                `;
+                arrayContainer.appendChild(elementNode);
+            });
+        }
+
+        // Clear highlighters on Code and Array
+        function clearAllVisuals() {
+            // Code block lines reset
+            for (let i = 1; i <= 16; i++) {
+                const el = document.getElementById(`codeLine${i}`);
+                if (el) el.className = "px-3 py-1 rounded transition-colors duration-200";
+            }
+
+            // Nodes classes reset
+            array.forEach((_, idx) => {
+                // Hide index flags
+                document.getElementById(`marker-left-${idx}`).style.opacity = '0';
+                document.getElementById(`marker-left-${idx}`).style.transform = 'translateY(8px)';
+                document.getElementById(`marker-mid-${idx}`).style.opacity = '0';
+                document.getElementById(`marker-mid-${idx}`).style.transform = 'translateY(8px)';
+                document.getElementById(`marker-right-${idx}`).style.opacity = '0';
+                document.getElementById(`marker-right-${idx}`).style.transform = 'translateY(8px)';
+                
+                // Box classes restore default
+                const box = document.getElementById(`box-${idx}`);
+                box.className = "w-12 h-12 md:w-14 md:h-14 flex items-center justify-center border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-2xl text-base md:text-lg font-bold code-font transition-all duration-300 shadow-sm text-slate-800 dark:text-slate-100";
+            });
+
+            resultMessage.className = "hidden p-4 rounded-2xl text-center font-bold text-base transition-all duration-300 animate-pulse";
+        }
+
+        // Apply a specific step from step list
+        function applyStep(index) {
+            if (index < 0 || index >= steps.length) return;
+            
+            clearAllVisuals();
+            const step = steps[index];
+
+            // 1. Highlight Code lines
+            step.activeLines.forEach(lineNum => {
+                const el = document.getElementById(`codeLine${lineNum}`);
+                if (el) el.classList.add('line-highlight', 'text-brand-500', 'font-semibold', 'dark:text-brand-400');
+            });
+
+            // 2. Variables visual updating
+            valLeft.innerText = step.left >= 0 && step.left < array.length ? step.left : '-';
+            valMid.innerText = step.mid !== null ? step.mid : '-';
+            valRight.innerText = step.right >= 0 && step.right < array.length ? step.right : '-';
+            valMidValue.innerText = step.mid !== null ? array[step.mid] : '-';
+            valTarget.innerText = target;
+            valStepCount.innerText = step.stepNum;
+            
+            // Update explanation UI
+            stepExplanation.innerHTML = step.explanation;
+
+            // 3. Highlight Array blocks depending on step parameters
+            const L = step.left;
+            const R = step.right;
+            const M = step.mid;
+
+            // Show pointer arrows
+            if (L >= 0 && L < array.length) {
+                const pL = document.getElementById(`marker-left-${L}`);
+                pL.style.opacity = '1';
+                pL.style.transform = 'translateY(0)';
+            }
+            if (R >= 0 && R < array.length) {
+                const pR = document.getElementById(`marker-right-${R}`);
+                pR.style.opacity = '1';
+                pR.style.transform = 'translateY(0)';
+            }
+            if (M !== null && M >= 0 && M < array.length) {
+                const pM = document.getElementById(`marker-mid-${M}`);
+                pM.style.opacity = '1';
+                pM.style.transform = 'translateY(0)';
+            }
+
+            // Loop and style all array boxes according to range
+            array.forEach((_, idx) => {
+                const box = document.getElementById(`box-${idx}`);
+                
+                // If index is outside the active [Left...Right] bounds, paint greyed out
+                if (idx < L || idx > R) {
+                    box.classList.add('bg-slate-200', 'dark:bg-slate-900', 'border-slate-200', 'dark:border-slate-800', 'text-slate-400', 'opacity-40');
+                } else {
+                    box.classList.add('bg-white', 'dark:bg-slate-800', 'border-slate-300', 'dark:border-slate-700');
+                }
+
+                // If currently at Mid index, color light blue
+                if (idx === M) {
+                    box.classList.remove('border-slate-300', 'dark:border-slate-700');
+                    box.classList.add('border-brand-500', 'bg-brand-50', 'dark:bg-slate-800/80', 'ring-4', 'ring-brand-500/20', 'text-brand-600', 'dark:text-brand-400');
+                }
+            });
+
+            // Handlers for absolute states (success / fail)
+            if (step.status === 'success') {
+                const successBox = document.getElementById(`box-${M}`);
+                successBox.classList.remove('border-brand-500', 'bg-brand-50', 'text-brand-600');
+                successBox.classList.add('border-emerald-500', 'bg-emerald-50', 'dark:bg-emerald-950/40', 'ring-4', 'ring-emerald-500/30', 'text-emerald-600', 'dark:text-emerald-400');
+                
+                resultMessage.classList.remove('hidden');
+                resultMessage.classList.add('bg-emerald-50', 'dark:bg-emerald-950/30', 'border', 'border-emerald-200', 'dark:border-emerald-800/50', 'text-emerald-700', 'dark:text-emerald-400');
+                resultMessage.innerHTML = `<i class="fa-solid fa-circle-check"></i> Đã tìm thấy số <strong>${target}</strong> tại vị trí index số <strong>${M}</strong> sau ${step.stepNum} lượt chia đôi!`;
+            } else if (step.status === 'failed') {
+                resultMessage.classList.remove('hidden');
+                resultMessage.classList.add('bg-rose-50', 'dark:bg-rose-950/30', 'border', 'border-rose-200', 'dark:border-rose-800/50', 'text-rose-700', 'dark:text-rose-400');
+                resultMessage.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Không tìm thấy số <strong>${target}</strong> trong mảng này!`;
+            }
+        }
+
+        // Logic Controls Actions
+        function updateButtonStates() {
+            btnPrev.disabled = currentStepIndex <= 0;
+            btnNext.disabled = currentStepIndex >= steps.length - 1;
+            
+            if (currentStepIndex >= steps.length - 1) {
+                pauseAutoPlay();
+            }
+        }
+
+        function goNext() {
+            if (currentStepIndex < steps.length - 1) {
+                currentStepIndex++;
+                applyStep(currentStepIndex);
+                updateButtonStates();
+            }
+        }
+
+        function goPrev() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                applyStep(currentStepIndex);
+                updateButtonStates();
+            }
+        }
+
+        // Auto play managers
+        function startAutoPlay() {
+            isPlaying = true;
+            playIcon.className = "fa-solid fa-pause text-base";
+            playText.innerText = "Tạm dừng";
+            btnPlayPause.classList.remove('bg-sky-500', 'hover:bg-sky-600');
+            btnPlayPause.classList.add('bg-amber-500', 'hover:bg-amber-600');
+
+            const speed = parseFloat(speedSlider.value) * 1000;
+            playInterval = setInterval(() => {
+                if (currentStepIndex < steps.length - 1) {
+                    goNext();
+                } else {
+                    pauseAutoPlay();
+                }
+            }, speed);
+        }
+
+        function pauseAutoPlay() {
+            isPlaying = false;
+            playIcon.className = "fa-solid fa-play text-base";
+            playText.innerText = "Tự chạy";
+            btnPlayPause.classList.remove('bg-amber-500', 'hover:bg-amber-600');
+            btnPlayPause.classList.add('bg-sky-500', 'hover:bg-sky-600');
+            
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        // Control buttons click listeners
+        btnNext.addEventListener('click', goNext);
+        btnPrev.addEventListener('click', goPrev);
+        
+        btnPlayPause.addEventListener('click', () => {
+            if (isPlaying) {
+                pauseAutoPlay();
+            } else {
+                // If playing reached the end, reset to step 0 first
+                if (currentStepIndex >= steps.length - 1) {
+                    currentStepIndex = 0;
+                    applyStep(currentStepIndex);
+                    updateButtonStates();
+                }
+                startAutoPlay();
+            }
+        });
+
+        btnResetVisualizer.addEventListener('click', initVisualizer);
+
+        // First initial run of application
+        window.onload = function() {
+            initVisualizer();
+        }
+    </script>
+</body>
+</html>
