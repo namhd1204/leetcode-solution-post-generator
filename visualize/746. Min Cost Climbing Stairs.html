@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mô phỏng Min Cost Climbing Stairs</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .step-node {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .character-avatar {
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20 text-white">
+                    <i class="fa-solid fa-stairs text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        746. Min Cost Climbing Stairs
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Dễ</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Trực quan hóa thuật toán Quy hoạch động (Dynamic Programming)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="https://leetcode.com/problems/min-cost-climbing-stairs/" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-4 py-2 rounded-lg border border-slate-700 transition flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem trên LeetCode
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Controls & Visualization -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Input Custom Cost -->
+            <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5 shadow-xl backdrop-blur-sm">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i> Cấu hình bài toán
+                </h2>
+                <div class="flex flex-col md:flex-row gap-4 items-end">
+                    <div class="flex-1">
+                        <label class="block text-xs text-slate-400 mb-2 font-medium">Nhập mảng chi phí (Cost array - cách nhau bằng dấu phẩy):</label>
+                        <input type="text" id="costInput" value="10, 15, 20" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm transition" placeholder="Ví dụ: 1, 100, 1, 1, 1, 100, 1, 1, 100, 1">
+                    </div>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button id="btnApply" class="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/10 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check"></i> Áp dụng
+                        </button>
+                        <button id="btnRandom" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-4 py-2.5 rounded-xl text-sm border border-slate-700 transition flex items-center justify-center" title="Tạo mảng ngẫu nhiên">
+                            <i class="fa-solid fa-dice"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <span class="text-xs text-slate-400">Mẫu nhanh:</span>
+                    <button class="quick-sample text-xs bg-slate-900 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-md border border-slate-800 transition" data-val="10, 15, 20">Example 1 [10, 15, 20]</button>
+                    <button class="quick-sample text-xs bg-slate-900 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-md border border-slate-800 transition" data-val="1, 100, 1, 1, 1, 100, 1, 1, 100, 1">Example 2 [1, 100, 1, ...]</button>
+                </div>
+            </div>
+
+            <!-- Visualization Canvas -->
+            <div class="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 shadow-2xl relative min-h-[380px] flex flex-col justify-between overflow-hidden">
+                <!-- Decorative Grid background -->
+                <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30 pointer-events-none"></div>
+
+                <!-- Simulation Info Header -->
+                <div class="relative z-10 flex justify-between items-start">
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md border border-indigo-500/10">Trực quan hóa</span>
+                        <div class="mt-2 text-slate-400 text-xs">Mục tiêu: Đạt tới đỉnh <span class="font-bold text-emerald-400" id="goalStepText">Top</span> với tổng chi phí ít nhất.</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400">Tổng chi phí hiện tại:</div>
+                        <div class="text-2xl font-black text-indigo-400" id="currentTotalCost">0</div>
+                    </div>
+                </div>
+
+                <!-- Stairs Container -->
+                <div class="relative z-10 my-8 py-10 flex items-end justify-center gap-1.5 md:gap-3 overflow-x-auto min-h-[220px]" id="stairsWrapper">
+                    <!-- Stairs steps dynamically populated here -->
+                </div>
+
+                <!-- Step Control Buttons -->
+                <div class="relative z-10 flex flex-wrap justify-between items-center gap-4 pt-4 border-t border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <button id="btnPrev" class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 p-2.5 rounded-xl border border-slate-700 transition" title="Bước trước">
+                            <i class="fa-solid fa-backward"></i>
+                        </button>
+                        <button id="btnPlay" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition shadow-lg shadow-emerald-600/15 flex items-center gap-2">
+                            <i class="fa-solid fa-play" id="playIcon"></i> <span id="playText">Tự động chạy</span>
+                        </button>
+                        <button id="btnNext" class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 p-2.5 rounded-xl border border-slate-700 transition" title="Bước tiếp theo">
+                            <i class="fa-solid fa-forward"></i>
+                        </button>
+                        <button id="btnReset" class="bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 p-2.5 rounded-xl border border-slate-800 transition" title="Đặt lại">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-slate-400">Tốc độ:</span>
+                            <select id="speedSelect" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none">
+                                <option value="1500">Chậm</option>
+                                <option value="1000" selected>Thường</option>
+                                <option value="500">Nhanh</option>
+                            </select>
+                        </div>
+                        <div class="text-xs text-slate-400">
+                            Bước: <span id="stepCounter" class="font-bold text-slate-200">0</span> / <span id="totalSteps" class="text-slate-500">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algorithm Explanation Panel -->
+            <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5 shadow-xl">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-blue-400"></i> Nhật ký thuật toán ứng với bước hiện tại
+                </h3>
+                <div class="bg-slate-950/60 border border-slate-850 rounded-xl p-4 font-mono text-xs text-slate-300 leading-relaxed min-h-[100px]" id="stepExplanation">
+                    Chọn "Áp dụng" hoặc nhấn "Bước tiếp theo" để bắt đầu giải bài toán.
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Code and State tracker -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- DP State Table -->
+            <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5 shadow-xl">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-table-list text-amber-400"></i> Bảng trạng thái DP
+                </h3>
+                <div class="overflow-hidden rounded-xl border border-slate-700/50">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-900 text-xs uppercase text-slate-400">
+                            <tr>
+                                <th class="px-4 py-2.5">Bậc (i)</th>
+                                <th class="px-4 py-2.5">Cost[i]</th>
+                                <th class="px-4 py-2.5 text-right">DP[i] (Min Cost)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dpTableBody">
+                            <!-- Dynamic rows loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pseudo Code & Current Execution Line -->
+            <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5 shadow-xl flex-1 flex flex-col">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-code text-emerald-400"></i> Mã nguồn & Dòng đang chạy
+                </h3>
+                <div class="bg-slate-950 rounded-xl p-4 font-mono text-xs text-slate-300 flex-1 overflow-auto border border-slate-900">
+                    <div id="code-line-1" class="py-0.5 px-2 rounded transition">const n = cost.length;</div>
+                    <div id="code-line-2" class="py-0.5 px-2 rounded transition text-slate-500">// dp[i] là chi phí tối thiểu để đến bậc i</div>
+                    <div id="code-line-3" class="py-0.5 px-2 rounded transition">const dp = new Array(n + 1).fill(0);</div>
+                    <div id="code-line-4" class="py-0.5 px-2 rounded transition text-slate-500">// Đứng sẵn ở bậc 0 hoặc bậc 1, ko tốn phí</div>
+                    <div id="code-line-5" class="py-0.5 px-2 rounded transition">dp[0] = 0;</div>
+                    <div id="code-line-6" class="py-0.5 px-2 rounded transition">dp[1] = 0;</div>
+                    <div id="code-line-7" class="py-0.5 px-2 rounded transition text-indigo-400">for (let i = 2; i &lt;= n; i++) {</div>
+                    <div id="code-line-8" class="py-0.5 px-2 rounded transition pl-6">dp[i] = Math.min(</div>
+                    <div id="code-line-9" class="py-0.5 px-2 rounded transition pl-12 text-rose-400">dp[i-1] + cost[i-1], // Đi từ i-1 lên 1 bước</div>
+                    <div id="code-line-10" class="py-0.5 px-2 rounded transition pl-12 text-teal-400">dp[i-2] + cost[i-2]  // Đi từ i-2 lên 2 bước</div>
+                    <div id="code-line-11" class="py-0.5 px-2 rounded transition pl-6">);</div>
+                    <div id="code-line-12" class="py-0.5 px-2 rounded transition">}</div>
+                    <div id="code-line-13" class="py-0.5 px-2 rounded transition text-emerald-400">return dp[n];</div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500">
+        <p>Mô phỏng trực quan thuật toán giải thích bước đi và cách tính mảng DP.</p>
+    </footer>
+
+    <!-- Custom Toast Message Element (No alerts) -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 bg-slate-800 border border-slate-700 text-slate-200 px-4 py-3 rounded-xl shadow-2xl transition duration-300 flex items-center gap-2.5">
+        <i class="fa-solid fa-circle-exclamation text-amber-400"></i>
+        <span id="toastMessage">Thông báo ở đây</span>
+    </div>
+
+    <script>
+        // Data State
+        let cost = [10, 15, 20];
+        let n = cost.length;
+        let dp = [];
+        let stepsHistory = [];
+        let currentStepIndex = 0;
+        let isPlaying = false;
+        let playInterval = null;
+
+        // Elements
+        const costInput = document.getElementById('costInput');
+        const btnApply = document.getElementById('btnApply');
+        const btnRandom = document.getElementById('btnRandom');
+        const stairsWrapper = document.getElementById('stairsWrapper');
+        const goalStepText = document.getElementById('goalStepText');
+        const currentTotalCost = document.getElementById('currentTotalCost');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const btnPlay = document.getElementById('btnPlay');
+        const btnReset = document.getElementById('btnReset');
+        const playIcon = document.getElementById('playIcon');
+        const playText = document.getElementById('playText');
+        const speedSelect = document.getElementById('speedSelect');
+        const stepCounter = document.getElementById('stepCounter');
+        const totalSteps = document.getElementById('totalSteps');
+        const stepExplanation = document.getElementById('stepExplanation');
+        const dpTableBody = document.getElementById('dpTableBody');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+
+        // Functions
+        function showToast(msg) {
+            toastMessage.textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3000);
+        }
+
+        // Generate Steps History based on DP algorithm execution
+        function generateSteps() {
+            stepsHistory = [];
+            
+            // Step 0: Initialization
+            stepsHistory.push({
+                type: 'init',
+                i: null,
+                dp: Array(n + 1).fill(null),
+                activeLines: [1, 3],
+                explanation: `Khởi tạo bài toán với mảng chi phí cost = [${cost.join(', ')}]. Tổng số bậc thang n = ${n}. Tạo mảng dp có kích thước n+1 = ${n+1} lưu trữ chi phí tối thiểu để đạt đến mỗi bậc.`,
+                highlightSteps: [],
+                highlightDpRows: []
+            });
+
+            const initialDp = Array(n + 1).fill(null);
+            initialDp[0] = 0;
+            
+            // Step 1: Base case dp[0]
+            stepsHistory.push({
+                type: 'base_0',
+                i: 0,
+                dp: [...initialDp],
+                activeLines: [5],
+                explanation: "Thiết lập điều kiện cơ sở: Đứng sẵn ở bậc 0 tốn chi phí dp[0] = 0.",
+                highlightSteps: [0],
+                highlightDpRows: [0]
+            });
+
+            initialDp[1] = 0;
+            // Step 2: Base case dp[1]
+            stepsHistory.push({
+                type: 'base_1',
+                i: 1,
+                dp: [...initialDp],
+                activeLines: [6],
+                explanation: "Thiết lập điều kiện cơ sở tiếp theo: Bạn cũng có thể xuất phát trực tiếp từ bậc 1 mà không mất chi phí ban đầu. Do đó, dp[1] = 0.",
+                highlightSteps: [1],
+                highlightDpRows: [1]
+            });
+
+            // Loop step iterations
+            let currentDp = [...initialDp];
+            for (let i = 2; i <= n; i++) {
+                // Visualize option evaluation
+                const fromOneIdx = i - 1;
+                const fromTwoIdx = i - 2;
+                const valOne = currentDp[fromOneIdx] + cost[fromOneIdx];
+                const valTwo = currentDp[fromTwoIdx] + cost[fromTwoIdx];
+                const minVal = Math.min(valOne, valTwo);
+
+                stepsHistory.push({
+                    type: 'compare',
+                    i: i,
+                    dp: [...currentDp],
+                    activeLines: [7, 8, 9, 10],
+                    explanation: `Đang tính toán cho bậc i = ${i}. Chúng ta xem xét 2 hướng đi tối ưu để đặt chân đến bậc này:\n` +
+                                 `• Hướng 1: Đi từ bậc i-1 (${fromOneIdx}) có dp[${fromOneIdx}] = ${currentDp[fromOneIdx]} cộng thêm phí tại bậc đó là cost[${fromOneIdx}] = ${cost[fromOneIdx]}. Tổng cộng = ${valOne}.\n` +
+                                 `• Hướng 2: Đi từ bậc i-2 (${fromTwoIdx}) có dp[${fromTwoIdx}] = ${currentDp[fromTwoIdx]} cộng thêm phí tại bậc đó là cost[${fromTwoIdx}] = ${cost[fromTwoIdx]}. Tổng cộng = ${valTwo}.`,
+                    highlightSteps: [fromOneIdx, fromTwoIdx],
+                    highlightDpRows: [fromOneIdx, fromTwoIdx],
+                    comparing: { fromOneIdx, fromTwoIdx, valOne, valTwo, minVal }
+                });
+
+                currentDp[i] = minVal;
+
+                stepsHistory.push({
+                    type: 'update',
+                    i: i,
+                    dp: [...currentDp],
+                    activeLines: [11],
+                    explanation: `Chọn giá trị nhỏ nhất giữa ${valOne} và ${valTwo}.\n` +
+                                 `Cập nhật dp[${i}] = min(${valOne}, ${valTwo}) = ${minVal}.`,
+                    highlightSteps: [i],
+                    highlightDpRows: [i],
+                    selectedPath: valOne < valTwo ? 'one' : (valOne > valTwo ? 'two' : 'both')
+                });
+            }
+
+            // Step final: Result
+            stepsHistory.push({
+                type: 'finish',
+                i: n,
+                dp: [...currentDp],
+                activeLines: [13],
+                explanation: `Hoàn tất thuật toán. Để bước tới Đỉnh Cầu Thang (vị trí cuối ngoài mảng n = ${n}), chi phí tối thiểu đạt được là dp[n] = ${currentDp[n]}!`,
+                highlightSteps: [n],
+                highlightDpRows: [n]
+            });
+
+            totalSteps.textContent = stepsHistory.length - 1;
+        }
+
+        // Draw visual components on the screen
+        function renderStairs() {
+            stairsWrapper.innerHTML = '';
+            
+            // Let's render n steps + 1 top step
+            for (let i = 0; i <= n; i++) {
+                const stepHeight = i === n ? 180 : 50 + (cost[i] * 5); // scale height for visual depth
+                const stepCol = document.createElement('div');
+                stepCol.className = 'step-node relative flex flex-col justify-end items-center group';
+                stepCol.style.height = `${stepHeight + 50}px`;
+                stepCol.setAttribute('data-index', i);
+
+                const isGoal = i === n;
+                
+                // Active character container (positioned above the step node)
+                const charContainer = document.createElement('div');
+                charContainer.id = `char-at-${i}`;
+                charContainer.className = 'absolute -top-12 z-20 character-avatar flex flex-col items-center opacity-0 transform translate-y-4';
+                charContainer.innerHTML = `
+                    <div class="bg-indigo-500 text-white rounded-full p-2 shadow-md flex items-center justify-center border-2 border-white ring-4 ring-indigo-500/20 animate-bounce">
+                        <i class="fa-solid fa-person-running text-lg"></i>
+                    </div>
+                    <div class="bg-slate-950 text-white text-[10px] px-1.5 py-0.5 rounded border border-slate-700 mt-1 font-bold whitespace-nowrap">Tổng: <span class="char-cost">0</span></div>
+                `;
+                stepCol.appendChild(charContainer);
+
+                // Step Block Design
+                const stepBlock = document.createElement('div');
+                stepBlock.style.height = `${stepHeight}px`;
+                stepBlock.className = `w-14 sm:w-20 rounded-t-xl flex flex-col justify-between p-2 shadow-lg transition-all duration-300 ${
+                    isGoal 
+                    ? 'bg-gradient-to-t from-emerald-950 to-emerald-600 border-2 border-emerald-400/50' 
+                    : 'bg-gradient-to-t from-slate-950 to-slate-700 border border-slate-600/50'
+                }`;
+
+                // Header in the step (cost or "Goal")
+                const stepHeader = document.createElement('div');
+                stepHeader.className = 'text-center';
+                if (isGoal) {
+                    stepHeader.innerHTML = `
+                        <div class="text-[10px] font-black tracking-wider text-emerald-300 uppercase animate-pulse">Top</div>
+                        <div class="text-xs font-semibold text-emerald-100">Đỉnh</div>
+                    `;
+                } else {
+                    stepHeader.innerHTML = `
+                        <div class="text-[10px] text-slate-400 font-bold uppercase">Phí</div>
+                        <div class="text-sm font-black text-slate-100">${cost[i]}</div>
+                    `;
+                }
+                stepBlock.appendChild(stepHeader);
+
+                // Footer in the step (Index counter)
+                const stepFooter = document.createElement('div');
+                stepFooter.className = `text-center py-1 rounded bg-slate-900/80 border text-[11px] font-bold ${
+                    isGoal ? 'border-emerald-500/20 text-emerald-400' : 'border-slate-800 text-slate-400'
+                }`;
+                stepFooter.textContent = isGoal ? `Bậc ${i}` : `Bậc ${i}`;
+                stepBlock.appendChild(stepFooter);
+
+                stepCol.appendChild(stepBlock);
+
+                // Quick visual feedback on hovering
+                if (!isGoal) {
+                    stepCol.addEventListener('mouseenter', () => {
+                        stepBlock.classList.add('scale-105', 'shadow-indigo-500/10');
+                    });
+                    stepCol.addEventListener('mouseleave', () => {
+                        stepBlock.classList.remove('scale-105', 'shadow-indigo-500/10');
+                    });
+                }
+
+                stairsWrapper.appendChild(stepCol);
+            }
+            goalStepText.textContent = `Bậc ${n} (Đỉnh)`;
+        }
+
+        // Draw static table with state structure
+        function renderTable() {
+            dpTableBody.innerHTML = '';
+            for (let i = 0; i <= n; i++) {
+                const tr = document.createElement('tr');
+                tr.id = `dp-row-${i}`;
+                tr.className = 'border-b border-slate-800 transition duration-300 hover:bg-slate-800/30';
+                
+                const isGoal = i === n;
+                const costVal = isGoal ? '-' : `<span class="font-mono text-slate-100">${cost[i]}</span>`;
+
+                tr.innerHTML = `
+                    <td class="px-4 py-2 font-semibold text-xs text-slate-400 ${isGoal ? 'text-emerald-400 font-bold' : ''}">
+                        ${isGoal ? 'Đỉnh (' + i + ')' : 'Bậc ' + i}
+                    </td>
+                    <td class="px-4 py-2 text-xs">${costVal}</td>
+                    <td class="px-4 py-2 font-mono text-right text-xs" id="dp-cell-val-${i}">-</td>
+                `;
+                dpTableBody.appendChild(tr);
+            }
+        }
+
+        // Highlight source code line
+        function highlightCodeLines(linesArray) {
+            // Remove highlight on all lines
+            for (let l = 1; l <= 13; l++) {
+                const line = document.getElementById(`code-line-${l}`);
+                if (line) {
+                    line.classList.remove('bg-indigo-600/30', 'text-white', 'border-l-4', 'border-indigo-500');
+                    if (l === 9) {
+                        line.className = 'py-0.5 px-2 rounded transition pl-12 text-rose-400';
+                    } else if (l === 10) {
+                        line.className = 'py-0.5 px-2 rounded transition pl-12 text-teal-400';
+                    } else if (l === 13) {
+                        line.className = 'py-0.5 px-2 rounded transition text-emerald-400';
+                    } else {
+                        line.className = 'py-0.5 px-2 rounded transition text-slate-400';
+                    }
+                }
+            }
+            // Add highlights to active lines
+            linesArray.forEach(l => {
+                const line = document.getElementById(`code-line-${l}`);
+                if (line) {
+                    line.classList.remove('text-slate-400', 'text-rose-400', 'text-teal-400', 'text-emerald-400');
+                    line.classList.add('bg-indigo-600/30', 'text-white', 'border-l-4', 'border-indigo-500');
+                }
+            });
+        }
+
+        // Update step UI based on dynamic steps history index
+        function updateVisuals() {
+            const step = stepsHistory[currentStepIndex];
+            if (!step) return;
+
+            // Counters
+            stepCounter.textContent = currentStepIndex;
+            stepExplanation.innerHTML = step.explanation.replace(/\n/g, '<br>');
+
+            // Code Line Highlighting
+            highlightCodeLines(step.activeLines);
+
+            // Table updates
+            for (let i = 0; i <= n; i++) {
+                const cell = document.getElementById(`dp-cell-val-${i}`);
+                const row = document.getElementById(`dp-row-${i}`);
+                if (cell) {
+                    if (step.dp[i] !== null) {
+                        cell.textContent = step.dp[i];
+                        cell.classList.add('font-bold', 'text-indigo-400');
+                    } else {
+                        cell.textContent = '-';
+                        cell.classList.remove('font-bold', 'text-indigo-400');
+                    }
+                }
+                // Highlight rows active in this computation
+                if (row) {
+                    row.classList.remove('bg-indigo-600/10', 'border-l-2', 'border-indigo-500', 'bg-emerald-600/10', 'border-emerald-500');
+                    if (step.highlightDpRows.includes(i)) {
+                        if (step.type === 'update' && i === step.i) {
+                            row.classList.add('bg-emerald-600/10', 'border-l-2', 'border-emerald-500');
+                        } else {
+                            row.classList.add('bg-indigo-600/10', 'border-l-2', 'border-indigo-500');
+                        }
+                    }
+                }
+            }
+
+            // Visualizer character position update
+            // Hide all avatars first
+            for (let i = 0; i <= n; i++) {
+                const avatar = document.getElementById(`char-at-${i}`);
+                if (avatar) {
+                    avatar.classList.add('opacity-0', 'translate-y-4');
+                    avatar.classList.remove('opacity-100', 'translate-y-0');
+                }
+            }
+
+            // Show character at current logical index
+            if (step.i !== null) {
+                const currentAvatar = document.getElementById(`char-at-${step.i}`);
+                if (currentAvatar) {
+                    currentAvatar.classList.remove('opacity-0', 'translate-y-4');
+                    currentAvatar.classList.add('opacity-100', 'translate-y-0');
+                    const costVal = step.dp[step.i] !== null ? step.dp[step.i] : 0;
+                    currentAvatar.querySelector('.char-cost').textContent = costVal;
+                    currentTotalCost.textContent = costVal;
+                }
+            } else {
+                currentTotalCost.textContent = '0';
+            }
+
+            // Reset dynamic step border animations
+            for (let i = 0; i <= n; i++) {
+                const stepCol = document.querySelector(`.step-node[data-index="${i}"]`);
+                if (stepCol) {
+                    const block = stepCol.querySelector('.w-14, .w-20');
+                    block.classList.remove('ring-4', 'ring-indigo-500/50', 'ring-teal-500/50', 'ring-rose-500/50', 'ring-emerald-500/50');
+                    
+                    // Highlight based on state type
+                    if (step.highlightSteps.includes(i)) {
+                        if (step.type === 'compare') {
+                            if (i === step.comparing.fromOneIdx) {
+                                block.classList.add('ring-4', 'ring-rose-500/50');
+                            } else {
+                                block.classList.add('ring-4', 'ring-teal-500/50');
+                            }
+                        } else if (step.type === 'update') {
+                            block.classList.add('ring-4', 'ring-emerald-500/50');
+                        } else {
+                            block.classList.add('ring-4', 'ring-indigo-500/50');
+                        }
+                    }
+                }
+            }
+
+            // Button controls state
+            btnPrev.disabled = currentStepIndex === 0;
+            btnNext.disabled = currentStepIndex === stepsHistory.length - 1;
+        }
+
+        function setupAll() {
+            n = cost.length;
+            renderStairs();
+            renderTable();
+            generateSteps();
+            currentStepIndex = 0;
+            updateVisuals();
+            stopAutoplay();
+        }
+
+        // Navigation controls logic
+        function goNext() {
+            if (currentStepIndex < stepsHistory.length - 1) {
+                currentStepIndex++;
+                updateVisuals();
+            } else {
+                stopAutoplay();
+                showToast("Bạn đã đến Đỉnh Cầu Thang tối ưu!");
+            }
+        }
+
+        function goPrev() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                updateVisuals();
+            }
+        }
+
+        function toggleAutoplay() {
+            if (isPlaying) {
+                stopAutoplay();
+            } else {
+                startAutoplay();
+            }
+        }
+
+        function startAutoplay() {
+            isPlaying = true;
+            playIcon.className = "fa-solid fa-pause";
+            playText.textContent = "Tạm dừng";
+            
+            const speed = parseInt(speedSelect.value, 10);
+            
+            playInterval = setInterval(() => {
+                if (currentStepIndex < stepsHistory.length - 1) {
+                    goNext();
+                } else {
+                    stopAutoplay();
+                }
+            }, speed);
+        }
+
+        function stopAutoplay() {
+            isPlaying = false;
+            playIcon.className = "fa-solid fa-play";
+            playText.textContent = "Tự động chạy";
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        // Listeners
+        btnApply.addEventListener('click', () => {
+            const val = costInput.value.trim();
+            if (!val) {
+                showToast("Mảng chi phí không được để trống!");
+                return;
+            }
+            
+            const parsed = val.split(',')
+                             .map(x => parseInt(x.trim(), 10))
+                             .filter(x => !isNaN(x));
+
+            if (parsed.length < 2) {
+                showToast("Mảng chi phí phải có ít nhất 2 phần tử!");
+                return;
+            }
+            if (parsed.length > 15) {
+                showToast("Để mô phỏng tốt nhất, độ dài mảng nên dưới 15 phần tử.");
+                return;
+            }
+
+            cost = parsed;
+            setupAll();
+            showToast("Đã áp dụng mảng chi phí mới!");
+        });
+
+        btnRandom.addEventListener('click', () => {
+            const length = Math.floor(Math.random() * 6) + 5; // 5 to 10 steps
+            const randArr = [];
+            for (let i = 0; i < length; i++) {
+                randArr.push(Math.floor(Math.random() * 30) + 1); // 1 to 30 cost values
+            }
+            costInput.value = randArr.join(', ');
+            cost = randArr;
+            setupAll();
+            showToast("Đã tạo ngẫu nhiên mảng chi phí!");
+        });
+
+        document.querySelectorAll('.quick-sample').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const val = e.target.getAttribute('data-val');
+                costInput.value = val;
+                cost = val.split(',').map(x => parseInt(x.trim(), 10));
+                setupAll();
+                showToast("Đã áp dụng mẫu thử nhanh!");
+            });
+        });
+
+        btnNext.addEventListener('click', goNext);
+        btnPrev.addEventListener('click', goPrev);
+        btnPlay.addEventListener('click', toggleAutoplay);
+        btnReset.addEventListener('click', () => {
+            setupAll();
+            showToast("Đã đặt lại mô phỏng.");
+        });
+        speedSelect.addEventListener('change', () => {
+            if (isPlaying) {
+                stopAutoplay();
+                startAutoplay();
+            }
+        });
+
+        // Initialize App on load
+        window.onload = function() {
+            setupAll();
+        };
+    </script>
+</body>
+</html>
